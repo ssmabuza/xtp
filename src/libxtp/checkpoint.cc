@@ -33,8 +33,8 @@
 #include <votca/xtp/checkpointreader.h>
 #include <votca/xtp/checkpoint.h>
 
-// Have to do this check because the hdf5 group
-// because the name changes between versions...
+// Have to do this check because because the name changes between
+// versions...
 #if H5_VERSION_GE(1,10,0)
 #define HDF_VERSION_SELECTION H5F_LIBVER_V18
 #else
