@@ -45,6 +45,11 @@ CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
     : _fileName(fN){
 
   try {
+      // First, set the hdf5 library to be compatible with
+      // version 1.8
+
+      H5::FileAccPropList::DEFAULT.setLibverBounds(H5F_LIBVER_EARLIEST,
+                                                   H5F_LIBVER_18);
       bool fileExists = false;
 
       if (!overWrite){
