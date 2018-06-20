@@ -32,6 +32,15 @@
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
 #include <votca/xtp/checkpoint.h>
+
+// Have to do this check because the hdf5 group
+// because the name changes between versions...
+#if H5_VERSION_GE(1,10,0)
+#define HDF_VERSION_SELECTION H5F_LIBVER_V18
+#else
+#define HDF_VERSION_SELECTION H5F_LIBVER_18
+#endif
+
 namespace votca {
 namespace xtp {
 
@@ -49,7 +58,7 @@ CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
       // version 1.8
 
       H5::FileAccPropList::DEFAULT.setLibverBounds(H5F_LIBVER_EARLIEST,
-                                                   H5F_LIBVER_18);
+                                                   HDF_VERSION_SELECTION);
       bool fileExists = false;
 
       if (!overWrite){
