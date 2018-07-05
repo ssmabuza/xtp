@@ -23,29 +23,23 @@
 }
 
 \newcommand{\xml}{XML\xspace}
-\newcommand{\gromacs}{\texttt{GROMACS}\xspace}
-\newcommand{\gaussian}{\texttt{Gaussian}\xspace}
-\newcommand{\turbomole}{\texttt{Turbomole}\xspace}
-\newcommand{\nwchem}{\texttt{NWChem}\xspace}
-\newcommand{\tinker}{\texttt{TINKER}\xspace}
-\newcommand{\dipro}{\texttt{DIPRO}\xspace}
+\newcommand{\gromacs}{GROMACS\xspace}
+\newcommand{\xtp}{VOTCA-XTP\xspace}
+\newcommand{\gaussian}{GAUSSIAN\xspace}
+\newcommand{\nwchem}{NWChem\xspace}
+\newcommand{\orca}{ORCA\xspace}
 
-\newcommand{\Alq}{$\mathrm{Alq}_3$\xspace}
-\newcommand{\dcvt}{DCV2T\xspace}
+\newcommand{\dipro}{DIPRO}
 
 \newcommand{\xyz}{\texttt{geometry.xyz}\xspace}
-\newcommand{\orb}{\texttt{zindo.orb}\xspace}
 \newcommand{\votcaxtp}{{\MakeUppercase{votca-xtp}}\xspace}
 
 \newcommand{\calculator}{\hyperref[sec:calculators]{calculator}\xspace}
 \newcommand{\tool}{\hyperref[sec:calculators]{tool}\xspace}
 
 \newcommand{\xmloptions}{\texttt{options.xml}\xspace}
-\newcommand{\xmlcsg}{\hyperref[sec:xmlmap]{\texttt{map.xml}}\xspace}
-\newcommand{\xmlsegments}{\hyperref[sec:xmlsegments]{\texttt{segments.xml}}\xspace}
+\newcommand{\xmlmap}{\hyperref[sec:xmlmap]{\texttt{map.xml}}\xspace}
 \newcommand{\sqlstate}{\hyperref[sec:statefile]{\texttt{state.sql}}\xspace}
-\newcommand{\sqlstateref}{\hyperref[sec:statefile]{\texttt{state\_ref.sql}}\xspace}
-\newcommand{\sqlstatecg}{\hyperref[sec:statefile]{\texttt{state\_cg.sql}}\xspace}
 \newcommand{\topology}{\texttt{topol.tpr}\xspace}
 \newcommand{\trajectory}{\texttt{traj.xtc}\xspace}
 
@@ -64,15 +58,13 @@
 
 \newcommand{\refcalc}{\hyperref[ref:calculators]{calculators}\xspace}
 
-\newcommand{\overlap}{\hyperref[prog:xtp_overlap]{\texttt{xtp\_overlap}}\xspace}
+
 \newcommand{\xtprun}{\hyperref[prog:xtp_run]{\texttt{xtp\_run}}\xspace}
 \newcommand{\xtpmap}{\hyperref[prog:xtp_map]{\texttt{xtp\_map}}\xspace}
-\newcommand{\xtpdipro}{\hyperref[prog:xtp_dipro]{\texttt{xtp\_dipro}}\xspace}
 \newcommand{\xtpparallel}{\hyperref[prog:xtp_parallel]{\texttt{xtp\_parallel}}\xspace}
 \newcommand{\xtpdump}{\hyperref[prog:xtp_dump]{\texttt{xtp\_dump}}\xspace}
 \newcommand{\xtpupdate}{\hyperref[prog:xtp_update]{\texttt{xtp\_update}}\xspace}
 \newcommand{\xtptools}{\hyperref[prog:xtp_tools]{\texttt{xtp\_tools}}\xspace}
-\newcommand{\kmcrun}{\hyperref[prog:xtp_kmc_run]{\texttt{xtp\_kmc\_run}}\xspace}
 
 \newcommand{\sqlite}{\texttt{sqlite3}\xspace}
 \newcommand{\sqlconjsegproperties}{\texttt{conjseg\_properties}\xspace}
@@ -107,12 +99,40 @@
 
 % Calculus and Linear Algbra Notation
 % formulas
-\newcommand{\vctr}[1]{\mathbf{ \bar{#1} }}
-\newcommand{\oper}[1]{\hat{ #1 }}
-\newcommand{\matr}[1]{\mathbf{ #1 }}
+\newcommand{\ang}{\text{\AA}}
+\newcommand{\expval}[3]{\ensuremath{\bra{#1}\hat{#2}\ket{#3}}}
+\newcommand{\ddint}[1]{{\ensuremath{\text{d}^3#1\,}}}
+\newcommand{\dint}[1]{{\ensuremath{\text{d}#1\,}}}
+\newcommand{\matr}[1]{\ensuremath\underline{\mathbf{#1}}}
+\newcommand{\oper}[1]{\ensuremath{\hat{#1}}}
+
+\newcommand{\vect}[1]{{\ensuremath\mathbf{#1}}}
+\newcommand{\veck}{{\ensuremath{\mathbf{k}}}}
+\newcommand{\vecG}{{\ensuremath{\mathbf{G}}}}
+\newcommand{\veca}{{\ensuremath{\mathbf{a}}}}
+\newcommand{\vecb}{{\ensuremath{\mathbf{b}}}}
+\newcommand{\vecr}{{\ensuremath{\mathbf{r}}}}
+\newcommand{\vecA}{{\ensuremath{\mathbf{A}}}}
+\newcommand{\vecB}{{\ensuremath{\mathbf{B}}}}
+\newcommand{\vecX}{{\ensuremath{\mathbf{X}}}}
+\newcommand{\vecR}{{\ensuremath{\mathbf{R}}}}
+\newcommand{\vecp}{{\ensuremath{\mathbf{p}}}}
+\newcommand{\vecP}{{\ensuremath{\mathbf{P}}}}
+
+\newcommand{\ket}[1]{{\ensuremath{\vert #1 \rangle}}}
+\newcommand{\bra}[1]{{\ensuremath{\langle #1 \vert}}}
+\newcommand{\braket}[2]{{\ensuremath{\langle #1 \vert #2 \rangle}}}
+\newcommand{\ks}{\ensuremath{\text{KS}}}
+\newcommand{\qp}{\ensuremath{\text{QP}}}
+\newcommand{\gwbse}{$GW$-BSE\xspace}
+
+
+
+
+\newcommand{\nul}{{\ensuremath{\mathbf{0}}}}
 
 %% FULL COMMANDS LISTING
-\newcommand{\cmdmap}{\xtpmap \tpl \topology \trj \trajectory \seg \xmlcsg  \sql \sqlstate}
+\newcommand{\cmdmap}{\xtpmap \tpl \topology \trj \trajectory \seg \xmlmap  \sql \sqlstate}
 \newcommand{\cmdnbl}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{neighborlist}}
 \newcommand{\cmdemlt}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{emultipole}}
 \newcommand{\cmdeint}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{einternal}}
@@ -121,18 +141,14 @@
 \newcommand{\cmdizindo}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{izindo}}
 \newcommand{\cmdouter}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{outersphere}}
 \newcommand{\cmdrates}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{rates}}
-\newcommand{\cmdkmc}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcmultiple}}
-\newcommand{\cmdkmcsin}{ \kmcrun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcsingle}}
+\newcommand{\cmdkmc}{ \xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{kmcmultiple}}
 \newcommand{\cmdeana}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{eanalyze}}
 \newcommand{\cmdmolpol}{\xtptools \opt \xmloptions \exe \toolref{molpol}}
 \newcommand{\cmdlogmps}{\xtptools \opt \xmloptions \exe \toolref{log2mps}}
 \newcommand{\cmdxqmult}{\xtpparallel \opt \xmloptions \sql \sqlstate \exe \calc{xqmultipole}}
-\newcommand{\cmdpanalyze}{ \xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{panalyze}}
-\newcommand{\cmdeanast}{\xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{eanalyze}}
-\newcommand{\cmdianalyze}{ \xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{ianalyze}}
-\newcommand{\cmdnblst}{\xtprun \opt \xmloptions  \sql  \sqlstatecg \exe  \calc{neighborlist}}
-\newcommand{\cmdeimport}{ \xtprun \opt \xmloptions  \sql  \sqlstateref \exe  \calc{eimport}}
-\newcommand{\cmdiimport}{ \xtprun \opt \xmloptions  \sql  \sqlstatecg \exe  \calc{iimport}}
-\newcommand{\cmdratesst}{\xtprun \opt \xmloptions  \sql  \sqlstatecg \exe  \calc{rates}}
+\newcommand{\cmdeanast}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{eanalyze}}
+\newcommand{\cmdianalyze}{ \xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{ianalyze}}
+\newcommand{\cmdiimport}{ \xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{iimport}}
+\newcommand{\cmdratesst}{\xtprun \opt \xmloptions  \sql  \sqlstate \exe  \calc{rates}}
 
 

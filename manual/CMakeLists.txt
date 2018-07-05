@@ -46,7 +46,7 @@ include(${CMAKE_MODULE_PATH}/UseLATEX.cmake)
 # Include the following subdirectory # 
 ######################################
 #cannot use add_subdir as file depends only work with in the same directory
-foreach(CURRENT_DIR fig/chemical_structure fig/idft_flow fig/stochastic
+foreach(CURRENT_DIR fig/chemical_structure fig/idft_flow
   fig/reorganization_energy fig/workflow reference/xml reference/programs
   reference/calculators)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR})
@@ -65,20 +65,19 @@ add_latex_document(xtp-manual.tex
   BIBFILES xtp-manual.bib FORCE_DVI
   INPUTS newcommands.tex titlepage.tex theory/introduction.tex theory/workflow.tex theory/morphology.tex
     theory/fragments.tex theory/neighborlist.tex theory/reorganization_energy.tex theory/energetic_disorder.tex
-    theory/gdma.tex theory/thole.tex theory/electronic_couplings.tex theory/dipro.tex theory/dft.tex
-    theory/moo.tex theory/rate.tex theory/kmc.tex theory/nondispersive.tex theory/stochastic.tex
-    theory/analysis.tex theory/correlations.tex input/topology_atomistic.tex input/topology_coarsegrained.tex
+    theory/thole.tex theory/electronic_couplings.tex theory/dipro.tex theory/dft.tex
+    theory/moo.tex theory/rate.tex theory/kmc.tex theory/nondispersive.tex theory/analysis.tex theory/correlations.tex
+    input/topology_atomistic.tex input/topology_coarsegrained.tex
     input/orbitals_zindo.tex input/header_edft.tex input/header_idft.tex input/output_dft.tex
     input/statefile.tex reference/reference.tex reference/calculators.xml input/dcv2t/dcv2t.pdb
     input/dcv2t/map.xml input/get_orbitals.com input/qmpackage_headers/gaussian_edft.xml
-    input/qmpackage_headers/turbomole_edft.xml input/qmpackage_headers/nwchem_edft.xml input/TI.xml
-    input/qmpackage_headers/gaussian_idft.xml input/qmpackage_headers/turbomole_idft.xml
-    input/qmpackage_headers/nwchem_idft.xml fig/stochastic/stochastic.eps
+    input/qmpackage_headers/nwchem_edft.xml input/TI.xml
+    input/qmpackage_headers/gaussian_idft.xml input/qmpackage_headers/nwchem_idft.xml
     fig/conjugated_segment/fragment_segment.eps RandomFacts.tex
   IMAGES fig/logo.eps fig/logo_trans.eps
   TARGET_NAME xtp-manual DEPENDS gitid.tex fig/chemical_structure/dcv2t.eps fig/idft_flow/scheme.eps
-    fig/stochastic/overview_stochastic.eps fig/idft_flow/schemes_all.eps
-    fig/reorganization_energy/marcus_parabolas.eps fig/reorganization_energy/monomer_parabolas.eps
+    fig/idft_flow/schemes_all.eps fig/reorganization_energy/marcus_parabolas.eps 
+    fig/reorganization_energy/monomer_parabolas.eps
     fig/workflow/workflow.eps reference/xml/map.xml.tex reference/xml/options.xml.tex
     reference/programs/all.tex reference/calculators/calculators.tex
 )

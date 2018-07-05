@@ -24,25 +24,11 @@
 \usepackage{palatino}
 \usepackage{sidecap}
 
-
-
-
 \usepackage[tikz]{bclogo}
 \usepackage[framemethod=tikz]{mdframed}
-\usepackage{lipsum}
-
-
-
 
 \definecolor{bgblue}{RGB}{245,243,253}
 \definecolor{ttblue}{RGB}{91,194,224}
-% \renewcommand\bcStyleTitre[1]{\large\textcolor{ttblue}{#1}}
-
-%\mdfdefinestyle{mystyle}{%
-%rightline=true,innerleftmargin=10,innerrightmargin=10,
-%outerlinewidth=3pt,topline=false,rightline=true,bottomline=false,
-%skipabove=\topsep,skipbelow=\topsep
-%}
 
 \definecolor{webgreen}{rgb}{0,.5,0}
 \definecolor{webbrown}{rgb}{.6,0,0}
@@ -70,27 +56,13 @@ bookmarksopen=false,
 pdfpagemode=UseNone]{hyperref}
 \usepackage[all]{hypcap}
 \usepackage[hyphenbreaks]{breakurl}
-%\pdfcompresslevel=9
-
 \usepackage[T1]{fontenc}
-%\usepackage{times}
 \usepackage{type1cm}
-%\usepackage{showidx}
 \usepackage[draft,color,notref,notcite]{showkeys}
-
-\usepackage{braket}
 \usepackage{amssymb}
-
-%%%%%%%% TESTING
-
-
 \usepackage{tikz}
 \usetikzlibrary{shapes,shadows,arrows}
 \usetikzlibrary{positioning}
-
-
-
-
 
 \makeindex
 
@@ -104,9 +76,6 @@ pdfpagemode=UseNone]{hyperref}
 \addtolength{\topmargin}{0cm}
 \addtolength{\textheight}{0cm}
 
-
-
-
 \lstdefinelanguage{XML2}
 {
   morestring=[b]",
@@ -117,7 +86,6 @@ pdfpagemode=UseNone]{hyperref}
   keywordstyle=\color{cyan},
   morekeywords={xmlns,version,type}% list your attributes here
 }
-
 
 \lstset{
   language=XML,
@@ -169,17 +137,13 @@ pdfpagemode=UseNone]{hyperref}
 \input{theory/rate}
 \input{theory/kmc}
 \input{theory/nondispersive}
-\input{theory/stochastic}
 \input{theory/analysis}
 \input{theory/correlations}
-%\input{theory/idft}
 \input{RandomFacts}
 \chapter{Input and output files}
 \label{sec:io}
 \input{input/topology_atomistic}
 \input{input/topology_coarsegrained}
-
-%\input{input/topology_conjseg}
 \input{input/orbitals_zindo}
 \input{input/header_edft}
 \input{input/header_idft}
@@ -187,11 +151,6 @@ pdfpagemode=UseNone]{hyperref}
 \input{input/statefile}
 
 \input{reference/reference}
-
-
-
-%\appendix
-%\input{appendix/xtp_standalone}
 
 \nolinenumbers
 
