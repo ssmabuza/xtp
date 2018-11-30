@@ -22,7 +22,7 @@
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
 #include <vector>
-
+#include <boost/format.hpp>
 #include "votca/xtp/polarsegment.h"
 
 

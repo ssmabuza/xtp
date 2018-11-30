@@ -22,7 +22,7 @@
 #include <votca/xtp/segment.h>  
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/atom.h>
-
+#include <boost/format.hpp>
 using boost::format;
 
 namespace votca {
