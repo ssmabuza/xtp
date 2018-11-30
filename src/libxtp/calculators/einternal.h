@@ -21,12 +21,12 @@
 #ifndef _VOTCA_XTP_EINTERNAL_H
 #define _VOTCA_XTP_EINTERNAL_H
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 
 namespace votca { namespace xtp {
 
 
-class EInternal : public ctp::QMCalculator
+class EInternal : public QMCalculator
 {
 public:
 
@@ -36,7 +36,7 @@ public:
     std::string Identify() { return "einternal"; }
     void Initialize(tools::Property *options);
     void ParseEnergiesXML(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
 
@@ -226,10 +226,10 @@ void EInternal::ParseEnergiesXML(tools::Property *opt) {
     }
 }
 
-bool EInternal::EvaluateFrame(ctp::Topology *top) {
+bool EInternal::EvaluateFrame(Topology *top) {
 
     int count = 0;
-    for (ctp::Segment* seg:top->Segments()) {
+    for (Segment* seg:top->Segments()) {
 
         std::string segName = seg->getName();
         

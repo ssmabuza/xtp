@@ -22,14 +22,14 @@
 #define __STATESERVER_H
 
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <boost/format.hpp>
 
 
 
 namespace votca { namespace xtp {
 
-class StateServer : public ctp::QMCalculator
+class StateServer : public QMCalculator
 {
 public:
 
@@ -39,20 +39,20 @@ public:
     string Identify() { return "stateserver"; }
 
     void Initialize(Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
-    void DownloadTopology(FILE *out, ctp::Topology *top);
-    void DownloadSegments(FILE *out, ctp::Topology *top);
-    void DownloadPairs(FILE *out, ctp::Topology *top);
-    void DownloadEList(FILE *out, ctp::Topology *top);
-    void DownloadIList(FILE *out, ctp::Topology *top);
-    void DownloadCoords(FILE *out, ctp::Topology *top) { };
+    void DownloadTopology(FILE *out, Topology *top);
+    void DownloadSegments(FILE *out, Topology *top);
+    void DownloadPairs(FILE *out, Topology *top);
+    void DownloadEList(FILE *out, Topology *top);
+    void DownloadIList(FILE *out, Topology *top);
+    void DownloadCoords(FILE *out, Topology *top) { };
 
 
-    void WriteXQM(FILE *out, ctp::Topology *top);
-    void WriteEMP(FILE *out, ctp::Topology *top);
-    void WriteEXCITED(FILE *out, ctp::Topology *top);
-    void WriteULM(ctp::Topology *top);
+    void WriteXQM(FILE *out, Topology *top);
+    void WriteEMP(FILE *out, Topology *top);
+    void WriteEXCITED(FILE *out, Topology *top);
+    void WriteULM(Topology *top);
 
 private:
 
@@ -100,7 +100,7 @@ void StateServer::Initialize(Property *opt) {
 
 }
 
-bool StateServer::EvaluateFrame(ctp::Topology *top) {
+bool StateServer::EvaluateFrame(Topology *top) {
 
     // ++++++++++++++++++++++++ //
     // Topology - Sites - Pairs //
@@ -233,11 +233,11 @@ bool StateServer::EvaluateFrame(ctp::Topology *top) {
                          + "_rigid_" + _pdbfile;
 
         out = fopen(pdbfile.c_str(), "w");
-        vector<ctp::Segment*> ::iterator segIt;
+        vector<Segment*> ::iterator segIt;
         for (segIt = top->Segments().begin();
              segIt < top->Segments().end();
              segIt++) {
-            ctp::Segment *seg = *segIt;
+            Segment *seg = *segIt;
             seg->WritePDB(out);
         }
         fclose(out);
@@ -247,7 +247,7 @@ bool StateServer::EvaluateFrame(ctp::Topology *top) {
     return true;
 }
 
-void StateServer::DownloadTopology(FILE *out, ctp::Topology *top) {
+void StateServer::DownloadTopology(FILE *out, Topology *top) {
 
     fprintf(out, "Topology Database ID %3d \n", top->getDatabaseId());
     fprintf(out, "  Periodic Box: %2.4f %2.4f %2.4f | %2.4f %2.4f %2.4f "
@@ -277,15 +277,15 @@ void StateServer::DownloadTopology(FILE *out, ctp::Topology *top) {
  return;   
 }
 
-void StateServer::DownloadSegments(FILE *out, ctp::Topology *top) {
+void StateServer::DownloadSegments(FILE *out, Topology *top) {
 
-    vector< ctp::Segment* >::iterator segit;
+    vector< Segment* >::iterator segit;
 
     for (segit = top->Segments().begin();
             segit < top->Segments().end();
             segit++) {
 
-        ctp::Segment *seg = *segit;
+        Segment *seg = *segit;
         fprintf(out, "SiteID %5d %5s | xyz %8.3f %8.3f %8.3f "
                      "| SiteE(intra) C %2.4f A %2.4f S %2.4f T %2.4f "
                      "| Lambdas: NC %2.4f CN %2.4f NA %2.4f AN %2.4f "
@@ -317,14 +317,14 @@ void StateServer::DownloadSegments(FILE *out, ctp::Topology *top) {
     return;
 }
 
-void StateServer::DownloadPairs(FILE *out,ctp::Topology *top) {
-    ctp::QMNBList::iterator nit;
+void StateServer::DownloadPairs(FILE *out,Topology *top) {
+    QMNBList::iterator nit;
 
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
          nit++) {
 
-        ctp::QMPair *pair = *nit;
+        QMPair *pair = *nit;
 
         int ghost = (pair->HasGhost()) ? 1 : 0;
 
@@ -367,12 +367,12 @@ void StateServer::DownloadPairs(FILE *out,ctp::Topology *top) {
     return;
 }
 
-void StateServer::DownloadIList(FILE *out, ctp::Topology *top) {
-    ctp::QMNBList::iterator nit;
+void StateServer::DownloadIList(FILE *out, Topology *top) {
+    QMNBList::iterator nit;
     for (nit = top->NBList().begin();
          nit != top->NBList().end();
          ++nit) {
-        ctp::QMPair *pair = *nit;
+        QMPair *pair = *nit;
 
         fprintf(out, "%5d %5d %5d e %4.7e h %4.7e s %4.7e t %4.7e edr %4.7f pbc %1i\n",
         pair->getId(), 
@@ -392,7 +392,7 @@ void StateServer::DownloadIList(FILE *out, ctp::Topology *top) {
 
 
 
-void StateServer::WriteEMP(FILE *out, ctp::Topology *top) {
+void StateServer::WriteEMP(FILE *out, Topology *top) {
 
     fprintf(out, "# ID   TYPE    _n.mps    _e.mps    _h.mps \n");
 
@@ -411,7 +411,7 @@ void StateServer::WriteEMP(FILE *out, ctp::Topology *top) {
 
 
 
-void StateServer::WriteXQM(FILE *out, ctp::Topology *top) {
+void StateServer::WriteXQM(FILE *out, Topology *top) {
 
     fprintf(out, "<jobs>\n");
 
@@ -440,10 +440,10 @@ void StateServer::WriteXQM(FILE *out, ctp::Topology *top) {
 //    }
     
     int jobId = 0;    
-    vector< ctp::Segment* > ::iterator sit;
+    vector< Segment* > ::iterator sit;
     for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
         
-        ctp::Segment *seg = *sit;        
+        Segment *seg = *sit;        
         int segId = seg->getId();
         string segName = seg->getName();
         

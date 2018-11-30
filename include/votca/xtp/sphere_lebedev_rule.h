@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_LEBEDEV__H
-#define	__XTP_LEBEDEV__H
+#ifndef VOTCA_XTP_LEBEDEV_H
+#define	VOTCA_XTP_LEBEDEV_H
 
 
 #include <votca/tools/property.h>
@@ -39,7 +39,7 @@ namespace votca {
                 FillIndex2Order();
             };
 
-        std::map<std::string,GridContainers::spherical_grid> CalculateSphericalGrids(std::vector<QMAtom* > atoms, const std::string& type);
+        std::map<std::string,GridContainers::spherical_grid> CalculateSphericalGrids(const QMMolecule& atoms, const std::string& type);
         GridContainers::spherical_grid CalculateUnitSphereGrid(const std::string& element,const std::string& type);
         GridContainers::spherical_grid CalculateUnitSphereGrid(int order);
 
@@ -418,4 +418,4 @@ namespace votca {
 
     }
 }
-#endif	/* LEBEDEV_H */
+#endif	// VOTCA_XTP_LEBEDEV_H

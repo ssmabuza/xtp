@@ -17,11 +17,11 @@
  *
  */
 
-#ifndef __XTP_BFGSTRM__H
-#define __XTP_BFGSTRM__H
+#ifndef VOTCA_XTP_BFGSTRM_H
+#define VOTCA_XTP_BFGSTRM_H
 
 #include <votca/xtp/optimiser_costfunction.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <functional>
 #include <vector>
 
@@ -35,7 +35,7 @@ namespace votca {
             BFGSTRM(Optimiser_costfunction& costfunction):_costfunction(costfunction),_logging(false){
             _hessian=Eigen::MatrixXd::Identity(costfunction.NumParameters(),costfunction.NumParameters());}
 
-            void setLog(ctp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _logging=true;
                 _pLog = pLog;
             }
@@ -63,14 +63,11 @@ namespace votca {
             
 
         private:
-            
+
             Optimiser_costfunction& _costfunction;
         
             void UpdateHessian(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& delta_gradient);
-            Eigen::VectorXd CalculateInitialStep(const Eigen::MatrixXd& gradient)const;
-            Eigen::VectorXd CalculateRegularizedStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient)const;
             double QuadraticEnergy(const Eigen::VectorXd& gradient, const Eigen::VectorXd& delta_pos)const;
-
             bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient,double energy_delta);
             
             std::string _errormessage;
@@ -87,13 +84,13 @@ namespace votca {
 
             double _trust_radius=0.1;
 
-            int _max_iteration=50;
+            int _max_iteration=200;
 
-            ctp::Logger *_pLog;
+            Logger *_pLog;
 
 
         };
 
     }
 }
-#endif /* BFGSTRM_H */
+#endif // VOTCA_XTP_BFGSTRM_H

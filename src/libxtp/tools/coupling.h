@@ -22,13 +22,13 @@
 
 #include <stdio.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 namespace votca { namespace xtp {
     
-class Coupling : public ctp::QMTool
+class Coupling : public QMTool
 {
 public:
 
@@ -54,7 +54,7 @@ private:
     
     std::string      _output_file;
     
-    ctp::Logger      _log;
+    Logger      _log;
 
 };
 
@@ -62,7 +62,7 @@ void Coupling::Initialize(tools::Property* options)
 {
 
    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options, "ctp" );
+    UpdateWithDefaults( options, "xtp" );
     std::string key = "options." + Identify();    
     
     _degeneracy = options->get(key + ".degeneracy").as<double> ();
@@ -85,62 +85,57 @@ void Coupling::Initialize(tools::Property* options)
      
     _dftcoupling_options = options->get(key + ".dftcoupling_options");
 
-    xtp::QMPackageFactory::RegisterAll();
+    QMPackageFactory::RegisterAll();
     
 }
 
 bool Coupling::Evaluate() {
 
-    _log.setReportLevel( ctp::logDEBUG );
+    _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(ctp::logINFO,    "\n... ...");
-    _log.setPreface(ctp::logERROR,   "\n... ...");
-    _log.setPreface(ctp::logWARNING, "\n... ...");
-    _log.setPreface(ctp::logDEBUG,   "\n... ..."); 
+    _log.setPreface(logINFO,    "\n... ...");
+    _log.setPreface(logERROR,   "\n... ...");
+    _log.setPreface(logWARNING, "\n... ...");
+    _log.setPreface(logDEBUG,   "\n... ..."); 
 
     // get the corresponding object from the QMPackageFactory
     QMPackage *qmpackage =  QMPackages().Create( _package );
-   qmpackage->setLog( &_log );       
-   qmpackage->Initialize( _package_options );
+    qmpackage->setLog( &_log );       
+    qmpackage->Initialize( _package_options );
     qmpackage->setRunDir(".");
-     Orbitals orbitalsA, orbitalsB, orbitalsAB;
-     
+    Orbitals orbitalsA, orbitalsB, orbitalsAB;
 
-   
     qmpackage->setLogFileName( _logA );
     bool _parse_logA_status = qmpackage->ParseLogFile( orbitalsA );
-    if ( !_parse_logA_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule A" << std::flush; }
+    if ( !_parse_logA_status ) { XTP_LOG(logERROR,_log) << "Failed to read log of molecule A" << std::flush; }
     
     qmpackage->setLogFileName( _logB );
     bool _parse_logB_status = qmpackage->ParseLogFile( orbitalsB );
-    if ( !_parse_logB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule B" << std::flush; }
+    if ( !_parse_logB_status ) { XTP_LOG(logERROR,_log) << "Failed to read log of molecule B" << std::flush; }
     
     qmpackage->setLogFileName( _logAB );
     bool _parse_logAB_status = qmpackage->ParseLogFile( orbitalsAB );
-    if ( !_parse_logAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read log of molecule AB" << std::flush; }
+    if ( !_parse_logAB_status ) { XTP_LOG(logERROR,_log) << "Failed to read log of molecule AB" << std::flush; }
     
     qmpackage->setOrbitalsFileName( _orbA );
     bool _parse_orbitalsA_status = qmpackage->ParseOrbitalsFile( orbitalsA );
-    if ( !_parse_orbitalsA_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule A" << std::flush; }
+    if ( !_parse_orbitalsA_status ) { XTP_LOG(logERROR,_log) << "Failed to read orbitals of molecule A" << std::flush; }
 
     qmpackage->setOrbitalsFileName( _orbB );   
     bool _parse_orbitalsB_status = qmpackage->ParseOrbitalsFile( orbitalsB );
-    if ( !_parse_orbitalsB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of molecule B" << std::flush; }
+    if ( !_parse_orbitalsB_status ) { XTP_LOG(logERROR,_log) << "Failed to read orbitals of molecule B" << std::flush; }
     
     qmpackage->setOrbitalsFileName( _orbAB );   
     bool _parse_orbitalsAB_status = qmpackage->ParseOrbitalsFile( orbitalsAB );
-     if ( !_parse_orbitalsAB_status ) { CTP_LOG(ctp::logERROR,_log) << "Failed to read orbitals of dimer AB" << std::flush; }
+     if ( !_parse_orbitalsAB_status ) { XTP_LOG(logERROR,_log) << "Failed to read orbitals of dimer AB" << std::flush; }
 
-  
-    
     DFTcoupling dftcoupling; 
     dftcoupling.setLogger(&_log);
     dftcoupling.Initialize(_dftcoupling_options);
           
     dftcoupling.CalculateCouplings( orbitalsA, orbitalsB, orbitalsAB);  
     std::cout << _log;
- 
      
      // output the results
     tools::Property summary; 

@@ -26,8 +26,8 @@ namespace votca { namespace xtp {
        _S=S;
        Sminusahalf=S->Pseudo_InvSqrt(etol);
        if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
+            XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
+            XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
         }
        Sonehalf=S->Sqrt();
        return;
@@ -82,18 +82,18 @@ namespace votca { namespace xtp {
             coeffs=_adiis.CalcCoeff(_dmatHist,_mathist);
             diis_error=!_adiis.Info();
             if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << std::flush;
+            XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using ADIIS" << std::flush;
             }
         }
         else{
              coeffs=_diis.CalcCoeff();
              diis_error=!_diis.Info();
              if(_noisy){
-             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << std::flush;
+             XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using DIIS" << std::flush;
              }
         }
         if(diis_error){
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
+          XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
         for (int i=0;i<coeffs.size();i++){  
@@ -116,8 +116,8 @@ namespace votca { namespace xtp {
       _usemixing=true;
       dmatout=_mixingparameter*dmat+(1.0-_mixingparameter)*dmatout;
       if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<_mixingparameter << std::flush;
-        }
+        XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using Mixing with alpha="<<_mixingparameter << std::flush;
+      }
     }else{
       _usemixing=false;
     }
@@ -153,7 +153,7 @@ namespace votca { namespace xtp {
             }
 
         if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << std::flush;
+        XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using levelshift:" << _levelshift << " Hartree" << std::flush;
         }
         Eigen::MatrixXd vir=  MOsinv.transpose()*virt*MOsinv ; 
         H+=vir;

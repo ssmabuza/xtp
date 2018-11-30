@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_EULER_MACLAURIN__H
-#define	__XTP_EULER_MACLAURIN__H
+#ifndef VOTCA_XTP_EULER_MACLAURIN_H
+#define	VOTCA_XTP_EULER_MACLAURIN_H
 
 
 #include <votca/xtp/basisset.h>
@@ -35,7 +35,7 @@ namespace votca { namespace xtp {
             EulerMaclaurinGrid() { FillGrids(); };
             
             std::map<std::string, GridContainers::radial_grid> CalculateAtomicRadialGrids(const AOBasis& aobasis,
-                                                        std::vector<QMAtom* > atoms , const std::string& type);
+                                                        const QMMolecule& atoms , const std::string& type);
             
             std::vector<double> CalculatePruningIntervals( const std::string& element );
             
@@ -58,10 +58,10 @@ namespace votca { namespace xtp {
             double CalcResidual( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void CalculateRadialCutoffs(const AOBasis& aobasis, std::vector<QMAtom* > _atoms , const std::string& gridtype );
-            void RefineElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps);
+            void CalculateRadialCutoffs(const AOBasis& aobasis,const QMMolecule& atoms , const std::string& gridtype );
+            void RefineElementRangeMap(const AOBasis& aobasis, const QMMolecule& atoms , double eps);
 
-            void FillElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps);
+            void FillElementRangeMap(const AOBasis& aobasis, const QMMolecule& atoms , double eps);
 
             GridContainers::radial_grid CalculateRadialGridforAtom(const std::string& type,const std::pair<std::string,min_exp>& element);
             
@@ -477,4 +477,5 @@ c                  Md   No   Lr  Unq  Unp
         };
 
     }}
-#endif	/* EULER_MACLAURIN_H */
+#endif	// VOTCA_XTP_EULER_MACLAURIN_H
+

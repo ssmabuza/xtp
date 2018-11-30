@@ -16,9 +16,7 @@
  */
 
 #include "dftgwbse.h"
-#include "votca/xtp/qminterface.h"
 #include <votca/xtp/gwbseengine.h>
-
 
 using namespace std;
 
@@ -80,37 +78,38 @@ namespace votca {
         bool DftGwBse::Evaluate() {
 
 
-            if (_reporting == "silent")  _log.setReportLevel(ctp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-            if (_reporting == "noisy")   _log.setReportLevel(ctp::logDEBUG); // OUTPUT ALL THE THINGS
-            if (_reporting == "default") _log.setReportLevel(ctp::logINFO); // 
+            if (_reporting == "silent")  _log.setReportLevel(logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+            if (_reporting == "noisy")   _log.setReportLevel(logDEBUG); // OUTPUT ALL THE THINGS
+            if (_reporting == "default") _log.setReportLevel(logINFO); // 
 
             _log.setMultithreading(true);
-            _log.setPreface(ctp::logINFO,    "\n... ...");
-            _log.setPreface(ctp::logERROR,   "\n... ...");
-            _log.setPreface(ctp::logWARNING, "\n... ...");
-            _log.setPreface(ctp::logDEBUG,   "\n... ...");
+            _log.setPreface(logINFO,    "\n... ...");
+            _log.setPreface(logERROR,   "\n... ...");
+            _log.setPreface(logWARNING, "\n... ...");
+            _log.setPreface(logDEBUG,   "\n... ...");
             
             // Get orbitals object
             Orbitals orbitals;
 
-       
             if (_do_guess) {
-                CTP_LOG(ctp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+                XTP_LOG(logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
                 orbitals.ReadFromCpt(_guess_file);
             } else {
-                CTP_LOG(ctp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
-                orbitals.LoadFromXYZ(_xyzfile);
+                XTP_LOG(logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
+                orbitals.QMAtoms().LoadFromXYZ(_xyzfile);
             }
 
             QMPackage *qmpackage = QMPackages().Create(_package);
             qmpackage->setLog(&_log);
             qmpackage->Initialize(_package_options);
             qmpackage->setRunDir(".");
-            std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments;
+            
+
             if (_do_external) {
-                vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS(_mpsfile, 0);
-                std::shared_ptr<ctp::PolarSeg> newPolarSegment (new ctp::PolarSeg(0, sites));
-                polar_segments.push_back(newPolarSegment);
+                auto polar_segments = std::make_shared<MMRegion>();
+                PolarSegment seg=PolarSegment("",0);
+                seg.LoadFromMPS(_mpsfile);
+                polar_segments->push_back(seg);
                 qmpackage->setMultipoleBackground(polar_segments);
                 qmpackage->setDipoleSpacing(_dipole_spacing);
                 qmpackage->setWithPolarization(true);
@@ -130,13 +129,13 @@ namespace votca {
                 gwbse_engine.ExcitationEnergies(orbitals);
             }
             
-            CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
+            XTP_LOG(logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             orbitals.WriteToCpt(_archive_file);
             
             tools::Property summary = gwbse_engine.ReportSummary();
             if(summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
                 tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-                CTP_LOG(ctp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
+                XTP_LOG(logDEBUG, _log) << "Writing output to " << _xml_output << flush;
                 std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
                 ofout << (summary.get("output"));
                 ofout.close();

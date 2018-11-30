@@ -21,9 +21,8 @@
 #define __VOTCA_XTP_POLARSITE_H
 
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/topology.h>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/segment.h>
+#include <votca/xtp/qmatom.h>
+
 namespace votca { namespace xtp {
     /**
     \brief Class to represent Atom/Site in electrostatic+polarisation 
@@ -34,24 +33,25 @@ class PolarSite
 {
 
 public:
-    
 
-
-    PolarSite(int id, const std::string& name, const Eigen::Vector3d& pos)
-            : _id(id), _name(name),_pos(pos),_isPolarisable(false),
-            _Ps(Eigen::Matrix3d::Zero()),
-            _localpermanetField(Eigen::Vector3d::Zero()),
-            _localinducedField(Eigen::Vector3d::Zero()),
-            _eigendamp(0.0),
-            PhiP(0.0),PhiU(0.0){};
+    PolarSite(int id, std::string element, Eigen::Vector3d pos);
             
-    PolarSite(int id, const std::string& name)
-                    :PolarSite(id,name,Eigen::Vector3d::Zero()){};
+    PolarSite(int id, std::string element)
+                    :PolarSite(id,element,Eigen::Vector3d::Zero()){
+                };
+
+    PolarSite(const CheckpointReader& r){
+        ReadFromCpt(r);
+    }
+
+    PolarSite(const QMAtom& atom, double charge):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
+        setCharge(charge);
+    }
       
 
     int getId() const{ return _id; }
     int getRank()const{return _rank;}
-    const std::string &getName() const{ return _name; }
+    const std::string &getElement() const{ return _element; }
     const Eigen::Vector3d &getPos() const{ return _pos; }
     
     bool isPolarisable() const{ return _isPolarisable;}
@@ -64,23 +64,17 @@ public:
         _multipole=multipole;
         calcRank();
     }
+
+    void setCharge(double q){
+        _multipole(0)=q;
+        calcRank();
+    }
     
     void setPolarisation(const Eigen::Matrix3d pol){
         _Ps=pol;
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
         es.computeDirect(_Ps,Eigen::EigenvaluesOnly);
         _eigendamp=es.eigenvalues().maxCoeff();
-    }
-   
-    void setSegment(Segment* seg){
-        _segment=seg;
-    }
-    void setFragment(Fragment* frag){
-        _fragment=frag;
-    }
-    
-    void setTopology(Topology* top){
-        _top=top;
     }
     
     void ResetInduction(){
@@ -122,25 +116,31 @@ public:
        
     double InteractStatic(PolarSite& otherSite);
     
-    double InteractInduction(PolarSite& otherSite, double a);
+    double InteractInduction(PolarSite& otherSite, double a=0.39);
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
     
+    void WriteToCpt(const CheckpointWriter& w)const;
+
+   void ReadFromCpt(const CheckpointReader& r);
+   
+   static std::string Identify(){return "polarsite";}
+    
+    
 private:
-    
-    
+       
     void calcRank(); 
     Eigen::MatrixXd FillTholeInteraction(const PolarSite& otherSite, double a);
     Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
-    std::string  _name;
+    std::string  _element;
     Eigen::Vector3d _pos;
     int     _rank;
     Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
     
     //required for polarisation
-    bool _isPolarisable;
+    bool _isPolarisable=false;
     Eigen::Matrix3d _Ps;
     Eigen::Vector3d _localpermanetField;
     Eigen::Vector3d _localinducedField;
@@ -148,9 +148,6 @@ private:
     Eigen::Vector3d _inducedDipole_old;
     double _eigendamp;
     
-    Segment* _segment;
-    Fragment* _fragment;
-    Topology* _top;
     double PhiP;                            // Electric potential (due to perm.)
     double PhiU;                            // Electric potential (due to indu.)
 

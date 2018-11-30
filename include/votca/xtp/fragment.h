@@ -18,8 +18,8 @@
  */
 /// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_FRAGMENT_H
-#define	__VOTCA_XTP_FRAGMENT_H
+#ifndef VOTCA_XTP_FRAGMENT_H
+#define	VOTCA_XTP_FRAGMENT_H
 
 #include <vector>
 #include <string>
@@ -36,8 +36,7 @@ namespace votca { namespace xtp {
 
 class Topology;
 class Molecule;
-class Segment;
-class PolarSite;    
+class Segment;  
 
 /**
     \brief Rigid fragment. One conjugated segment contains several rigid fragments.
@@ -55,22 +54,20 @@ public:
     ~Fragment();
    
     // Function only operates on the QM position of the fragment 
-    void Rotate(votca::tools::matrix spin, votca::tools::vec refPos);    // rotates w.r.t. center of map
+    void Rotate(tools::matrix spin, tools::vec refPos);    // rotates w.r.t. center of map
     // Function only operates on the MD position of the fragment
-    void TranslateBy(const votca::tools::vec &shift);
+    void TranslateBy(const tools::vec &shift);
     void RotTransQM2MD();
 
     inline void setTopology(Topology *container) { _top = container; }
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
-    void        AddPolarSite(PolarSite *pole);
 
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
     std::vector< Atom* >     &Atoms() { return _atoms; }
-    std::vector<PolarSite*> &PolarSites() { return _polarSites; }
 
     const int    &getId() const { return _id; }
     const std::string &getName() const { return _name; }
@@ -85,16 +82,16 @@ public:
 
 
     void          calcPos(std::string tag = "MD");
-    void          setPos(votca::tools::vec pos) { _CoMD = pos; }
+    void          setPos(tools::vec pos) { _CoMD = pos; }
     // TODO we need to fix all these get position methods there should
     // not be so many, probably need some separate classes or some of them
     // need to be made private
-    const votca::tools::vec    &getPos() const { return _CoMD; }
-    const votca::tools::vec    &getCoMD() { return _CoMD; }
-    const votca::tools::vec    &getCoQM() { return _CoQM; }
-    const votca::tools::vec    &getCoQM0() { return _CoQM0; }
-    const votca::tools::matrix &getRotQM2MD() { return _rotateQM2MD; }
-    const votca::tools::vec    &getTransQM2MD() { return _translateQM2MD; }
+    const tools::vec    &getPos() const { return _CoMD; }
+    const tools::vec    &getCoMD() { return _CoMD; }
+    const tools::vec    &getCoQM() { return _CoQM; }
+    const tools::vec    &getCoQM0() { return _CoQM0; }
+    const tools::matrix &getRotQM2MD() { return _rotateQM2MD; }
+    const tools::vec    &getTransQM2MD() { return _translateQM2MD; }
     
     
     
@@ -104,7 +101,6 @@ private:
     Segment     *_seg;
 
     std::vector < Atom* > _atoms;
-    std::vector <PolarSite*> _polarSites;
     std::vector< double > _weights;
 
     int         _id;
@@ -113,17 +109,17 @@ private:
     Molecule    *_mol;
     int              _symmetry;
 
-    votca::tools::matrix      _rotateQM2MD;       // Set via ::Rigidify()
-    votca::tools::vec         _CoQM;              // Center of map (QM)
-    votca::tools::vec         _CoMD;              // Center of map (MD)
+    tools::matrix      _rotateQM2MD;       // Set via ::Rigidify()
+    tools::vec         _CoQM;              // Center of map (QM)
+    tools::vec         _CoMD;              // Center of map (MD)
     std::vector< int >    _trihedron;
-    votca::tools::vec         _CoQM0;             // Center of map (QM) original (for IZindo)
-    votca::tools::vec         _translateQM2MD;    // Set via ::Rigidify()
+    tools::vec         _CoQM0;             // Center of map (QM) original (for IZindo)
+    tools::vec         _translateQM2MD;    // Set via ::Rigidify()
 
 
 };
 
 }}
 
-#endif	/* __VOTCA_XTP_FRAGMENT_H */
+#endif	// VOTCA_XTP_FRAGMENT_H 
 

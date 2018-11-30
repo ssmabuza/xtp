@@ -22,21 +22,20 @@
 
 #include <stdio.h>
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/geometry_optimization.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/ctp/atom.h>
-#include <votca/ctp/qmtool.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/qmtool.h>
+#include <votca/xtp/segment.h>
 #include <votca/tools/constants.h>
 
 
 namespace votca {
     namespace xtp {
        
-
-        class DftGwBse : public ctp::QMTool {
+        class DftGwBse : public QMTool {
         public:
 
             DftGwBse() {
@@ -76,7 +75,7 @@ namespace votca {
             tools::Property _gwbseengine_options;
             tools::Property _geoopt_options;
 
-            ctp::Logger _log;
+            Logger _log;
 
             bool _do_optimize;
 

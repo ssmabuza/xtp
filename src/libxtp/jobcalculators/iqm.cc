@@ -19,12 +19,15 @@
 
 
 #include "iqm.h"
-
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <votca/ctp/logger.h>
+
 #include <votca/tools/constants.h>
+
+#include <votca/xtp/logger.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/molecule.h>
 #include <votca/xtp/qminterface.h>
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -155,16 +158,16 @@ namespace votca {
       return type2level;
     }
 
-    void IQM::addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top) {
-      ctp::Segment* seg1 = segments[0];
-      ctp::Segment* seg2 = segments[1];
+    void IQM::addLinkers(std::vector< Segment* > &segments, Topology *top) {
+      Segment* seg1 = segments[0];
+      Segment* seg2 = segments[1];
       int moleculeIdSeg1 = seg1->getMolecule()-> getId();
       int moleculeIdSeg2 = seg2->getMolecule()-> getId();
       if (moleculeIdSeg1 == moleculeIdSeg2) {// Check that both segments belong to the same molecule
         int idSeg1 = seg1->getId();
         int idSeg2 = seg2->getId();
-        std::vector<ctp::Segment*> segmentsInMolecule = top->getMolecule(moleculeIdSeg1)->Segments();
-        for (ctp::Segment* segment : segmentsInMolecule) {
+        std::vector<Segment*> segmentsInMolecule = top->getMolecule(moleculeIdSeg1)->Segments();
+        for (Segment* segment : segmentsInMolecule) {
           int idIterator = segment->getId();
           if (idIterator != idSeg1 && idIterator != idSeg2 && isLinker(segment->getName())) {
             segments.push_back(segment);
@@ -178,28 +181,28 @@ namespace votca {
       return (std::find(_linker_names.begin(), _linker_names.end(), name) != _linker_names.end());
     }
 
-    void IQM::WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals) {
-      ctp::Segment* seg1 = pair.Seg1();
-      ctp::Segment* seg2 = pair.Seg2();
-      ctp::Segment* ghost = NULL;
-      ctp::Topology* _top = seg1->getTopology();
-      ctp::vec r1 = seg1->getPos();
-      ctp::vec r2 = seg2->getPos();
-      ctp::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
+    void IQM::WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals) {
+      Segment* seg1 = pair.Seg1();
+      Segment* seg2 = pair.Seg2();
+      Segment* ghost = NULL;
+      Topology* _top = seg1->getTopology();
+      vec r1 = seg1->getPos();
+      vec r2 = seg2->getPos();
+      vec R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
 
       // Check whether pair formed across periodic boundary
-      if (abs(r2 - r1 - _R) > 1e-8) {
-        ghost = new ctp::Segment(seg2);
+      if (abs(r2 - r1 - R) > 1e-8) {
+        ghost = new Segment(seg2);
         //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-        for (ctp::Atom* atom : ghost->Atoms()) {
-          atom->setQMPos(atom->getQMPos() + r1 - r2 + _R);
+        for (Atom* atom : ghost->Atoms()) {
+          atom->setQMPos(atom->getQMPos() + r1 - r2 + R);
         }
       }
-      std::vector< ctp::Segment* > segments;
+      std::vector< Segment* > segments;
       segments.push_back(seg1);
       if (ghost) {
         segments.push_back(ghost);
-      } else {
+      }else{
         segments.push_back(seg2);
       }
       QMInterface interface;
@@ -207,14 +210,14 @@ namespace votca {
       delete ghost;
     }
 
-    void IQM::SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage) {
-      CTP_LOG(ctp::logERROR, *pLog) << errormessage << flush;
+    void IQM::SetJobToFailed(Job::JobResult& jres, Logger* pLog, const string& errormessage) {
+      XTP_LOG(logERROR, *pLog) << errormessage << flush;
       cout << *pLog;
       jres.setError(errormessage);
-      jres.setStatus(ctp::Job::FAILED);
+      jres.setStatus(Job::FAILED);
     }
     
-    void IQM::WriteLoggerToFile(const string& logfile, ctp::Logger& logger){
+    void IQM::WriteLoggerToFile(const string& logfile, Logger& logger){
       std::ofstream ofs;
       ofs.open(logfile.c_str(), std::ofstream::out);
       if (!ofs.is_open()) {
@@ -224,16 +227,16 @@ namespace votca {
       ofs.close();
     }
 
-    ctp::Job::JobResult IQM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *opThread) {
+    Job::JobResult IQM::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
       // report back to the progress observer
-      ctp::Job::JobResult jres = ctp::Job::JobResult();
+      Job::JobResult jres = Job::JobResult();
 
       string iqm_work_dir = "OR_FILES";
       string eqm_work_dir = "OR_FILES";
       string frame_dir = "frame_" + boost::lexical_cast<string>(top->getDatabaseId());
 
-      ctp::Logger* pLog = opThread->getLogger();
+      Logger* pLog = opThread->getLogger();
 
       // get the information about the job executed by the thread
       int job_ID = job->getId();
@@ -254,17 +257,17 @@ namespace votca {
       string orbFileAB = (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir / (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str()).c_str();
       string orb_dir = (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
 
-      ctp::Segment *seg_A = top->getSegment(ID_A);
-      ctp::Segment *seg_B = top->getSegment(ID_B);
-      ctp::QMNBList* nblist = &top->NBList();
-      ctp::QMPair* pair = nblist->FindPair(seg_A, seg_B);
+      Segment *seg_A = top->getSegment(ID_A);
+      Segment *seg_B = top->getSegment(ID_B);
+      QMNBList* nblist = &top->NBList();
+      QMPair* pair = nblist->FindPair(seg_A, seg_B);
 
-      CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Evaluating pair "
+      XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair "
               << job_ID << " [" << ID_A << ":" << ID_B << "] out of " <<
               (top->NBList()).size() << flush;
 
       string package_append = _package + "_" + Identify();
-      std::vector< ctp::Segment* > segments;
+      std::vector< Segment* > segments;
       segments.push_back(seg_A);
       segments.push_back(seg_B);
       string work_dir = (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir).c_str();
@@ -276,7 +279,7 @@ namespace votca {
       // if a pair object is available and is not linked take into account PBC, otherwise write as is
       if (pair == NULL || segments.size() > 2) {
         if (pair == NULL) {
-          CTP_LOG(ctp::logWARNING, *pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush;
+          XTP_LOG(logWARNING, *pLog) << "PBCs are not taken into account when writing the coordinate file!" << flush;
         }
         QMInterface interface;
         orbitalsAB.QMAtoms() = interface.Convert(segments);
@@ -287,12 +290,12 @@ namespace votca {
       if (_do_dft_input || _do_dft_run || _do_dft_parse) {
         string qmpackage_work_dir = (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir).c_str();
         
-        ctp::Logger dft_logger(ctp::logDEBUG);
+        Logger dft_logger(logDEBUG);
         dft_logger.setMultithreading(false);
-        dft_logger.setPreface(ctp::logINFO, (format("\nDFT INF ...")).str());
-        dft_logger.setPreface(ctp::logERROR, (format("\nDFT ERR ...")).str());
-        dft_logger.setPreface(ctp::logWARNING, (format("\nDFT WAR ...")).str());
-        dft_logger.setPreface(ctp::logDEBUG, (format("\nDFT DBG ...")).str());
+        dft_logger.setPreface(logINFO, (format("\nDFT INF ...")).str());
+        dft_logger.setPreface(logERROR, (format("\nDFT ERR ...")).str());
+        dft_logger.setPreface(logWARNING, (format("\nDFT WAR ...")).str());
+        dft_logger.setPreface(logDEBUG, (format("\nDFT DBG ...")).str());
 
         QMPackage *qmpackage = QMPackages().Create(_package);
         qmpackage->setLog(&dft_logger);
@@ -309,14 +312,14 @@ namespace votca {
                       "to use a monomer guess for the dimer. These are mutually exclusive.");
             }
 
-            CTP_LOG(ctp::logINFO, *pLog) << "Guess requested, reading molecular orbitals" << flush;
+            XTP_LOG(logINFO, *pLog) << "Guess requested, reading molecular orbitals" << flush;
 
             if (qmpackage->getPackageName() == "orca") {
-              CTP_LOG(ctp::logINFO, *pLog) << "Copying monomer .gbw files to pair folder" << flush;
+              XTP_LOG(logINFO, *pLog) << "Copying monomer .gbw files to pair folder" << flush;
               string gbwFileA = (arg_pathA / eqm_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str()).c_str();
               string gbwFileB = (arg_pathB / eqm_work_dir / "molecules" / frame_dir / (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str()).c_str();
-              string gbwFileA_workdir = (qmpackage_work_dir / "molA.gbw").c_str();
-              string gbwFileB_workdir = (qmpackage_work_dir / "molB.gbw").c_str();
+              string gbwFileA_workdir = (boost::filesystem::path(qmpackage_work_dir) / "molA.gbw").c_str();
+              string gbwFileB_workdir = (boost::filesystem::path(qmpackage_work_dir) / "molB.gbw").c_str();
               boost::filesystem::copy_file(gbwFileA, gbwFileA_workdir, boost::filesystem::copy_option::overwrite_if_exists);
               boost::filesystem::copy_file(gbwFileB, gbwFileB_workdir, boost::filesystem::copy_option::overwrite_if_exists);
             } else {
@@ -338,17 +341,17 @@ namespace votca {
                 delete qmpackage;
                 return jres;
               }
-              CTP_LOG(ctp::logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
+              XTP_LOG(logDEBUG, *pLog) << "Constructing the guess for dimer orbitals" << flush;
               orbitalsAB.PrepareDimerGuess(orbitalsA, orbitalsB);
             }
           } else {
-            CTP_LOG(ctp::logINFO, *pLog) << "No Guess requested, starting from DFT starting Guess" << flush;
+            XTP_LOG(logINFO, *pLog) << "No Guess requested, starting from DFT starting Guess" << flush;
           }
           qmpackage->WriteInputFile(orbitalsAB);
         }
 
         if (_do_dft_run) {
-          CTP_LOG(ctp::logDEBUG, *pLog) << "Running DFT" << flush;
+          XTP_LOG(logDEBUG, *pLog) << "Running DFT" << flush;
           bool _run_dft_status = qmpackage->Run(orbitalsAB);
           if (!_run_dft_status) {
             SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
@@ -407,7 +410,6 @@ namespace votca {
           SetJobToFailed(jres, pLog, "Do input: failed loading orbitals from " + orbFileB);
           return jres;
         }
-
         try {
           dftcoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
           dftcoupling.Addoutput(job_output, orbitalsA, orbitalsB);
@@ -422,13 +424,13 @@ namespace votca {
       // do excited states calculation
       if (_do_gwbse) {
         try {
-          CTP_LOG(ctp::logDEBUG, *pLog) << "Running GWBSE" << flush;
-          ctp::Logger gwbse_logger(ctp::logDEBUG);
+          XTP_LOG(logDEBUG, *pLog) << "Running GWBSE" << flush;
+          Logger gwbse_logger(logDEBUG);
           gwbse_logger.setMultithreading(false);
-          gwbse_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
-          gwbse_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
-          gwbse_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
-          gwbse_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+          gwbse_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
+          gwbse_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
+          gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
+          gwbse_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
           GWBSE gwbse = GWBSE(orbitalsAB);
           gwbse.setLogger(&gwbse_logger);
           gwbse.Initialize(_gwbse_options);
@@ -446,7 +448,7 @@ namespace votca {
 
 
       if (_do_bsecoupling) {
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Running BSECoupling" << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Running BSECoupling" << flush;
         BSECoupling bsecoupling;
         // orbitals must be loaded from a file
         if (!_do_gwbse) {
@@ -476,12 +478,12 @@ namespace votca {
         }
 
         try {
-          ctp::Logger bsecoupling_logger(ctp::logDEBUG);
+          Logger bsecoupling_logger(logDEBUG);
           bsecoupling_logger.setMultithreading(false);
-          bsecoupling_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
-          bsecoupling_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
-          bsecoupling_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
-          bsecoupling_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+          bsecoupling_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
+          bsecoupling_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
+          bsecoupling_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
+          bsecoupling_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
           bsecoupling.setLogger(&bsecoupling_logger);
           bsecoupling.Initialize(_bsecoupling_options);
           bsecoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
@@ -498,10 +500,10 @@ namespace votca {
       tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
       stringstream sout;
       sout << iomXML << _job_summary;
-      CTP_LOG(ctp::logINFO, *pLog) << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush;
+      XTP_LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B << flush;
       if (_store_dft || _store_singlets || _store_triplets || _store_ehint) {
         boost::filesystem::create_directories(orb_dir);
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Saving orbitals to " << orbFileAB << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Saving orbitals to " << orbFileAB << flush;
         if (!_store_dft) {
           orbitalsAB.AOVxc().resize(0, 0);
           orbitalsAB.MOCoefficients().resize(0, 0);
@@ -520,23 +522,23 @@ namespace votca {
         }
         orbitalsAB.WriteToCpt(orbFileAB);
       } else {
-        CTP_LOG(ctp::logDEBUG, *pLog) << "Orb file is not saved according to options " << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Orb file is not saved according to options " << flush;
       }
 
       jres.setOutput(_job_summary);
-      jres.setStatus(ctp::Job::COMPLETE);
+      jres.setStatus(Job::COMPLETE);
 
       return jres;
     }
 
-    void IQM::WriteJobFile(ctp::Topology * top) {
+    void IQM::WriteJobFile(Topology * top) {
 
       cout << endl << "... ... Writing job file " << flush;
       std::ofstream ofs;
       ofs.open(_jobfile.c_str(), std::ofstream::out);
       if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-      ctp::QMNBList &nblist = top->NBList();
+      QMNBList &nblist = top->NBList();
 
       int jobCount = 0;
       if (nblist.size() == 0) {
@@ -547,8 +549,8 @@ namespace votca {
       ofs << "<jobs>" << endl;
       string tag = "";
 
-      for (ctp::QMPair* pair : nblist) {
-        if (pair->getType() == ctp::QMPair::Excitoncl) {
+      for (QMPair* pair : nblist) {
+        if (pair->getType() == QMPair::Excitoncl) {
           continue;
         }
         int id1 = pair->Seg1()->getId();
@@ -564,7 +566,7 @@ namespace votca {
         Property & pSegmentB = pInput.add("segment", boost::lexical_cast<string>(id2));
         pSegmentB.setAttribute<string>("type", name2);
         pSegmentB.setAttribute<int>("id", id2);
-        ctp::Job job(id, tag, Input, ctp::Job::AVAILABLE);
+        Job job(id, tag, Input, Job::AVAILABLE);
         job.ToStream(ofs, "xml");
       }
       // CLOSE STREAM
@@ -633,17 +635,17 @@ namespace votca {
       return state;
     }
 
-    void IQM::ReadJobFile(ctp::Topology * top) {
+    void IQM::ReadJobFile(Topology * top) {
       // gets the neighborlist from the topology
-      ctp::QMNBList &nblist = top->NBList();
+      QMNBList &nblist = top->NBList();
       int number_of_pairs = nblist.size();
       int dft_h = 0;
       int dft_e = 0;
       int bse_s = 0;
       int bse_t = 0;
       int incomplete_jobs = 0;
-      ctp::Logger log;
-      log.setReportLevel(ctp::logINFO);
+      Logger log;
+      log.setReportLevel(logINFO);
         
       Property xml;
       // load the QC results in a vector indexed by the pair ID
@@ -674,32 +676,31 @@ namespace votca {
         double idB = id[1];
 
         // segments which correspond to these ids           
-        ctp::Segment *segA = top->getSegment(idA);
-        ctp::Segment *segB = top->getSegment(idB);
+        Segment *segA = top->getSegment(idA);
+        Segment *segB = top->getSegment(idB);
         // pair that corresponds to the two segments
-        ctp::QMPair *qmp = nblist.FindPair(segA, segB);
+        QMPair *qmp = nblist.FindPair(segA, segB);
         // output using logger
         
         if (qmp == NULL) { // there is no pair in the neighbor list with this name
-          CTP_LOG_SAVE(ctp::logINFO, log) << "No pair " << idA << ":" << idB << " found in the neighbor list. Ignoring" << flush;
+          XTP_LOG_SAVE(logINFO, log) << "No pair " << idA << ":" << idB << " found in the neighbor list. Ignoring" << flush;
         } else {
           records[qmp->getId()] = &(job->get("output"));
         }
 
       } // finished loading from the file
 
-      for (ctp::QMPair *pair:top->NBList()) {
+      for (QMPair *pair:top->NBList()) {
 
         if (records[ pair->getId() ] == NULL) continue; //skip pairs which are not in the jobfile
 
-        ctp::Segment* segmentA = pair->Seg1();
-        ctp::Segment* segmentB = pair->Seg2();
+        Segment* segmentA = pair->Seg1();
+        Segment* segmentB = pair->Seg2();
 
-        ctp::QMPair::PairType ptype = pair->getType();
-        if (ptype != ctp::QMPair::PairType::Hopping
-                && ptype != ctp::QMPair::PairType::SuperExchangeAndHopping) {
+        QMPair::PairType ptype = pair->getType();
+        if (ptype != QMPair::PairType::Hopping) {
           cout << "WARNING Pair " << pair->getId() << " is not of any of the "
-                  "Hopping or SuperExchangeAndHopping type. Skipping pair" << flush;
+                  "Hopping type. Skipping pair" << flush;
           continue;
         }
         
@@ -768,7 +769,7 @@ namespace votca {
 
       }
 
-      CTP_LOG_SAVE(ctp::logINFO, log) << "Pairs [total:updated(e,h,s,t)] "
+      XTP_LOG_SAVE(logINFO, log) << "Pairs [total:updated(e,h,s,t)] "
               << number_of_pairs << ":(" << dft_e << ","<< dft_h << "," << bse_s<< "," << bse_t
               << ") Incomplete jobs: " << incomplete_jobs << flush;
       cout<<std::endl;

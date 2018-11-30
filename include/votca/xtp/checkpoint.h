@@ -14,34 +14,50 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CHECKPOINT_H
-#define _VOTCA_XTP_CHECKPOINT_H
+#ifndef VOTCA_XTP_CHECKPOINT_H
+#define VOTCA_XTP_CHECKPOINT_H
 
 
 #include <H5Cpp.h>
 #include <votca/xtp/checkpoint_utils.h>
-
+#include <votca/xtp/checkpointwriter.h>
+#include <votca/xtp/checkpointreader.h>
 
 namespace votca {
 namespace xtp {
 
+enum class CheckpointAccessLevel{
+        READ = 0,
+        MODIFY = 1,
+        CREATE = 2
+};
+
+std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);
+
 class CheckpointFile {
  public:
-  CheckpointFile(std::string fileName, bool overWrite);
   CheckpointFile(std::string fileName);
+  CheckpointFile(std::string fileName, CheckpointAccessLevel access);
 
   std::string getFileName();
   std::string getVersion();
 
   H5::H5File getHandle();
 
+  CheckpointWriter getWriter();
+  CheckpointWriter getWriter(const std::string _path);
+  CheckpointReader getReader();
+  CheckpointReader getReader(const std::string _path);
+
  private:
   std::string _fileName;
   H5::H5File _fileHandle;
+  CptLoc _rootLoc;
+  CheckpointAccessLevel _accessLevel;
 
 };
 
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // _VOTCA_XTP_CHECKPOINT_H
+#endif  // VOTCA_XTP_CHECKPOINT_H

@@ -17,13 +17,14 @@
  *
  */
 
-#ifndef _VOTCA_XTP_BSE_H
-#define _VOTCA_XTP_BSE_H
+#ifndef VOTCA_XTP_BSE_H
+#define VOTCA_XTP_BSE_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
 namespace xtp {
@@ -46,7 +47,7 @@ struct Population {
     
  public:
  
-  BSE(Orbitals& orbitals,ctp::Logger *log,double min_print_weight):
+  BSE(Orbitals& orbitals,Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -112,7 +113,7 @@ struct Population {
  private:
  
       
-ctp::Logger *_log;
+Logger *_log;
   int  _homo;
   int  _bse_vmin;
   int  _bse_vmax;
@@ -167,9 +168,9 @@ ctp::Logger *_log;
 
   std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
 
-  std::vector<tools::vec > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
+  std::vector<Eigen::Vector3d > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
 };
 }
 }
 
-#endif /* _VOTCA_XTP_BSE_H */
+#endif // VOTCA_XTP_BSE_H

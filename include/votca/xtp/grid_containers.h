@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_GRID_CONTAINERS__H
-#define	__XTP_GRID_CONTAINERS__H
+#ifndef VOTCA_XTP_GRID_CONTAINERS_H
+#define	VOTCA_XTP_GRID_CONTAINERS_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/aobasis.h>
@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
             
             // container for cartesian grid points and weights
             struct Cartesian_gridpoint {
-                tools::vec grid_pos;//bohr
+                Eigen::Vector3d grid_pos;//bohr
                 double grid_weight;
             };
             
@@ -63,4 +63,4 @@ namespace votca { namespace xtp {
         };
 
     }}
-#endif	/* NUMERICAL_INTEGRATION_H */
+#endif	// VOTCA_XTP_GRID_CONTAINERS_H 

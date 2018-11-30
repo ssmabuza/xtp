@@ -66,7 +66,7 @@ namespace votca {
     }
 
     void GeometryOptimization::Evaluate() {
-      CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _opt_state.ToString() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << "Requested geometry optimization of excited state " << _opt_state.ToString() << std::flush;
 
       Statefilter filter;
       filter.Initialize(_filter_options);
@@ -78,12 +78,12 @@ namespace votca {
       Forces force_engine(_gwbse_engine, filter, _orbitals);
       force_engine.Initialize(_force_options);
       force_engine.setLog(_pLog);
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Convergence of total energy: %1$8.6f Hartree ") % _conv.deltaE).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Convergence of RMS Force:    %1$8.6f Hartree/Bohr ") % _conv.RMSForce).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Convergence of Max Force:    %1$8.6f Hartree/Bohr ") % _conv.MaxForce).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Convergence of RMS Step:     %1$8.6f Bohr ") % _conv.RMSStep).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Convergence of Max Step:     %1$8.6f Bohr ") % _conv.MaxStep).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Initial trust radius:        %1$8.6f Bohr") % _trust_radius).str() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << (boost::format("Convergence of total energy: %1$8.6f Hartree ") % _conv.deltaE).str() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << (boost::format("Convergence of RMS Force:    %1$8.6f Hartree/Bohr ") % _conv.RMSForce).str() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << (boost::format("Convergence of Max Force:    %1$8.6f Hartree/Bohr ") % _conv.MaxForce).str() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << (boost::format("Convergence of RMS Step:     %1$8.6f Bohr ") % _conv.RMSStep).str() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << (boost::format("Convergence of Max Step:     %1$8.6f Bohr ") % _conv.MaxStep).str() << std::flush;
+      XTP_LOG(logINFO, *_pLog) << (boost::format("Initial trust radius:        %1$8.6f Bohr") % _trust_radius).str() << std::flush;
 
       Energy_costfunction e_cost = Energy_costfunction(_gwbse_engine, filter, _orbitals, force_engine);
       e_cost.setConvergenceParameters(_conv);
@@ -105,26 +105,26 @@ namespace votca {
       return;
     }
 
-    void GeometryOptimization::Report(const BFGSTRM& bfgstrm,ctp::Logger* pLog){
+    void GeometryOptimization::Report(const BFGSTRM& bfgstrm,Logger* pLog){
 
-      CTP_LOG(ctp::logINFO, *pLog) << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
+      XTP_LOG(logINFO, *pLog) << std::flush;
+      XTP_LOG(logINFO, *pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
+      XTP_LOG(logINFO, *pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
+      XTP_LOG(logINFO, *pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
+      XTP_LOG(logINFO, *pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
       const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
       for (unsigned i = 0; i < atomvec.size(); i += 3) {
-        CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+        XTP_LOG(logINFO, *pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                 % (i/3) % (atomvec(i) * votca::tools::conv::bohr2ang) % (atomvec(i + 1) * votca::tools::conv::bohr2ang) % (atomvec(i + 2) * votca::tools::conv::bohr2ang)).str() << std::flush;
       }
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
+      XTP_LOG(logINFO, *pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
+      XTP_LOG(logINFO, *pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
       return;
     }
 
     
 
-    void GeometryOptimization::WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms, const BFGSTRM& bfgstrm){
+    void GeometryOptimization::WriteTrajectory(const std::string& filename, QMMolecule& atoms, const BFGSTRM& bfgstrm){
       std::ofstream ofs;
       if (bfgstrm.getIteration() == 0) {
         ofs.open(filename.c_str(), std::ofstream::out);
@@ -138,9 +138,9 @@ namespace votca {
       ofs << atoms.size() << std::endl;
       ofs << "iteration " << bfgstrm.getIteration() << " energy " << bfgstrm.getCost() << " Hartree" << std::endl;
       Energy_costfunction::Vector2QMAtoms(bfgstrm.getParameters(), atoms);
-      for (const QMAtom* atom : atoms) {
-        tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        ofs << atom->getType() << " " << pos.getX() << " " << pos.getY() << " " << pos.getZ() << std::endl;
+      for (const QMAtom& atom : atoms) {
+        const Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
+        ofs << atom.getElement() << " " << pos.x() << " " << pos.y() << " " << pos.z() << std::endl;
       }
       ofs.close();
       return;

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_QMSTATE_H
-#define _VOTCA_XTP_QMSTATE_H
+#ifndef VOTCA_XTP_QMSTATE_H
+#define VOTCA_XTP_QMSTATE_H
 
 #include<string>
 
@@ -43,7 +43,7 @@ namespace xtp {
         
         std::string ToString()const;
         
-        int ToCTPIndex()const;//returns ctp::segment id for statetype
+        int ToSegIndex()const;//returns segment id for statetype
     
         std::string ToLongString()const;
         
@@ -65,6 +65,11 @@ namespace xtp {
          
          bool isExciton()const{
              return (_type==statetype::Singlet || _type==statetype::Triplet);
+         }
+
+         bool isKMCState()const{
+             return (_type==statetype::Singlet || _type==statetype::Triplet 
+                     || _type==statetype::Hole || _type==statetype::Electron);
          }
          
          bool isSingleParticleState()const{
@@ -132,4 +137,4 @@ private:
 }
 }
 
-#endif /* _VOTCA_XTP_QMSTATE_H */
+#endif // VOTCA_XTP_QMSTATE_H 

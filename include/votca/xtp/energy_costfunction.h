@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_ENERGY_COSTFUNCTION__H
-#define __XTP_ENERGY_COSTFUNCTION__H
+#ifndef VOTCA_XTP_ENERGY_COSTFUNCTION_H
+#define VOTCA_XTP_ENERGY_COSTFUNCTION_H
 
 #include <votca/xtp/optimiser_costfunction.h>
 
@@ -72,14 +72,14 @@ namespace votca {
                 _convpara = convergence;
             }
             
-            void setLog(ctp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _pLog = pLog;
             }
 
             
             void Report();
-            static void Vector2QMAtoms(const Eigen::VectorXd& pos, std::vector<QMAtom*>& atoms);
-            static Eigen::VectorXd QMAtoms2Vector(std::vector<QMAtom*>& atoms);
+            static void Vector2QMAtoms(const Eigen::VectorXd& pos, QMMolecule& atoms);
+            static Eigen::VectorXd QMAtoms2Vector(QMMolecule& atoms);
             static Eigen::VectorXd Write3XMatrixToVector(const Eigen::MatrixX3d& matrix);
 
         private:
@@ -95,7 +95,7 @@ namespace votca {
             conv_paras _convpara;
             conv_paras _convval;
             
-            ctp::Logger *_pLog;
+            Logger *_pLog;
 
             
             
@@ -105,4 +105,4 @@ namespace votca {
 
     }
 }
-#endif /* FORCES_H */
+#endif // VOTCA_XTP_ENERGY_COSTFUNCTION_H

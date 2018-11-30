@@ -20,7 +20,7 @@
 #ifndef _VOTCA_XTP_EANALYZE_H
 #define _VOTCA_XTP_EANALYZE_H
 
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
 #include <math.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/qmstate.h>
@@ -31,7 +31,7 @@
 namespace votca {
     namespace xtp {
 
-        class EAnalyze : public ctp::QMCalculator {
+        class EAnalyze : public QMCalculator {
         public:
 
             EAnalyze() {
@@ -45,10 +45,10 @@ namespace votca {
             }
 
             void Initialize(tools::Property *opt);
-            bool EvaluateFrame(ctp::Topology *top);
-            void SiteHist(ctp::Topology *top, QMStateType state);
-            void PairHist(ctp::Topology *top, QMStateType state);
-            void SiteCorr(ctp::Topology *top, QMStateType state);
+            bool EvaluateFrame(Topology *top);
+            void SiteHist(Topology *top, QMStateType state);
+            void PairHist(Topology *top, QMStateType state);
+            void SiteCorr(Topology *top, QMStateType state);
 
         private:
 
@@ -68,7 +68,7 @@ namespace votca {
             int _last_seg;
 
             std::string _seg_pattern;
-            std::vector<ctp::Segment*> _seg_shortlist;
+            std::vector<Segment*> _seg_shortlist;
 
         };
 
@@ -124,10 +124,10 @@ namespace votca {
 
         }
 
-        bool EAnalyze::EvaluateFrame(ctp::Topology *top) {
+        bool EAnalyze::EvaluateFrame(Topology *top) {
 
             // Short-list segments according to pattern
-            for (ctp::Segment* seg : top->Segments()) {
+            for (Segment* seg : top->Segments()) {
                 std::string seg_name = seg->getName();
                 if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
                     _seg_shortlist.push_back(seg);
@@ -147,7 +147,7 @@ namespace votca {
             // ... Pair-energy histogram, mean, width
             // ... Site-energy correlation
 
-            ctp::QMNBList &nblist = top->NBList();
+            QMNBList &nblist = top->NBList();
 
             for (QMStateType state : _states) {
                 std::cout << std::endl << "... ... excited state " << state.ToString() << std::flush;
@@ -183,12 +183,12 @@ namespace votca {
             return true;
         }
 
-        void EAnalyze::SiteHist(ctp::Topology *top, QMStateType state) {
+        void EAnalyze::SiteHist(Topology *top, QMStateType state) {
 
             std::vector< double > Es;
             Es.reserve(_seg_shortlist.size());
-            for (ctp::Segment* seg : _seg_shortlist) {
-                double E = seg->getSiteEnergy(state.ToCTPIndex());
+            for (Segment* seg : _seg_shortlist) {
+                double E = seg->getSiteEnergy(state.ToSegIndex());
                 Es.push_back(E);
             }
 
@@ -218,15 +218,15 @@ namespace votca {
                 std::ofstream out;
                 out.open(filename.c_str());
                 if (!out) throw std::runtime_error("error, cannot open file " + filename);
-                for (ctp::Segment* seg : _seg_shortlist) {
+                for (Segment* seg : _seg_shortlist) {
                     if (seg->getId() < _first_seg) {
                         continue;
                     }
                     if (seg->getId() == _last_seg) {
                         break;
                     }
-                    double E = seg->getSiteEnergy(state.ToCTPIndex());
-                    for (ctp::Atom *atm : seg->Atoms()) {
+                    double E = seg->getSiteEnergy(state.ToSegIndex());
+                    for (Atom *atm : seg->Atoms()) {
                         out << boost::format("%1$3s %2$4.7f %3$4.7f %4$4.7f %5$4.7f\n")
                                 % seg->getName()
                                 % atm->getPos().getX() % atm->getPos().getY() % atm->getPos().getZ()
@@ -237,9 +237,9 @@ namespace votca {
             }
         }
 
-        void EAnalyze::PairHist(ctp::Topology *top, QMStateType state) {
+        void EAnalyze::PairHist(Topology *top, QMStateType state) {
 
-            ctp::QMNBList &nblist = top->NBList();
+            QMNBList &nblist = top->NBList();
 
             std::string filenamelist = "eanalyze.pairlist_" + state.ToString() + ".out";
 
@@ -249,10 +249,10 @@ namespace votca {
             std::ofstream out;
             out.open(filenamelist.c_str());
             if (!out) throw std::runtime_error("error, cannot open file " + filenamelist);
-            for (ctp::QMPair *pair : nblist) {
-                ctp::Segment *seg1 = pair->Seg1();
-                ctp::Segment *seg2 = pair->Seg2();
-                double deltaE = seg2->getSiteEnergy(state.ToCTPIndex()) - seg1->getSiteEnergy(state.ToCTPIndex());
+            for (QMPair *pair : nblist) {
+                Segment *seg1 = pair->Seg1();
+                Segment *seg2 = pair->Seg2();
+                double deltaE = seg2->getSiteEnergy(state.ToSegIndex()) - seg1->getSiteEnergy(state.ToSegIndex());
                 dE.push_back(deltaE);
                 dE.push_back(-deltaE);
                 out << boost::format("%1$5d %2$5d %3$4.7f \n") % seg1->getId() % seg2->getId() % deltaE;
@@ -278,12 +278,12 @@ namespace votca {
             tab.Save(filename2);
         }
 
-        void EAnalyze::SiteCorr(ctp::Topology *top, QMStateType state) {
+        void EAnalyze::SiteCorr(Topology *top, QMStateType state) {
 
             std::vector< double > Es;
             Es.reserve(_seg_shortlist.size());
-            for (ctp::Segment* seg : _seg_shortlist) {
-                double E = seg->getSiteEnergy(state.ToCTPIndex());
+            for (Segment* seg : _seg_shortlist) {
+                double E = seg->getSiteEnergy(state.ToSegIndex());
                 Es.push_back(E);
             }
 
@@ -294,8 +294,8 @@ namespace votca {
             double STD = std::sqrt(VAR);
 
             // Collect inter-site distances, correlation product
-            std::vector< ctp::Segment* > ::iterator sit1;
-            std::vector< ctp::Segment* > ::iterator sit2;
+            std::vector< Segment* > ::iterator sit1;
+            std::vector< Segment* > ::iterator sit2;
 
             tools::Table tabcorr;
             int length = _seg_shortlist.size()*(_seg_shortlist.size() - 1) / 2;
@@ -306,8 +306,8 @@ namespace votca {
                     double R = abs(top->PbShortestConnect((*sit1)->getPos(),
                             (*sit2)->getPos()));
                     if (_distancemode == "segment") {
-                        for (ctp::Fragment* frag1 : (*sit1)->Fragments()) {
-                            for (ctp::Fragment* frag2 : (*sit2)->Fragments()) {
+                        for (Fragment* frag1 : (*sit1)->Fragments()) {
+                            for (Fragment* frag2 : (*sit2)->Fragments()) {
                                 double R_FF = tools::abs(top->PbShortestConnect(frag1->getPos(),
                                         frag2->getPos()));
                                 if (R_FF < R) {
@@ -316,8 +316,8 @@ namespace votca {
                             }
                         }
                     }
-                    double C = ((*sit1)->getSiteEnergy(state.ToCTPIndex()) - AVG)
-                            * ((*sit2)->getSiteEnergy(state.ToCTPIndex()) - AVG);
+                    double C = ((*sit1)->getSiteEnergy(state.ToSegIndex()) - AVG)
+                            * ((*sit2)->getSiteEnergy(state.ToSegIndex()) - AVG);
                     tabcorr.set(index, R, C);
                     index++;
                 }

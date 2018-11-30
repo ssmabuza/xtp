@@ -22,8 +22,8 @@
 
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
 #include <votca/xtp/qmpackagefactory.h>
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/parallelxjobcalc.h>
+#include <votca/xtp/segment.h>
 
 namespace votca {
     namespace xtp {
@@ -37,20 +37,20 @@ namespace votca {
          * Callname: eqm
          */
 
-        class EQM : public ctp::ParallelXJobCalc< vector< ctp::Job*>, ctp::Job*, ctp::Job::JobResult > {
+        class EQM : public ParallelXJobCalc< vector< Job*>, Job*, Job::JobResult > {
         public:
-            void WriteLoggerToFile(const std::string& logfile, ctp::Logger& logger);
+            void WriteLoggerToFile(const std::string& logfile, Logger& logger);
             std::string Identify() {
                 return "eqm";
             }
             void Initialize(Property *options);
-            ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
+            Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
             
             void CleanUp() {;}
-            void WriteJobFile(ctp::Topology *top);
+            void WriteJobFile(Topology *top);
         private:
             
-           void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
+           void SetJobToFailed(Job::JobResult& jres, Logger* pLog, const string& errormessage);
             void ParseOptionsXML(Property *options);
 
             std::string _package;

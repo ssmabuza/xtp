@@ -17,13 +17,13 @@
  *
  */
 
-#ifndef __XTP_FORCES__H
-#define __XTP_FORCES__H
+#ifndef VOTCA_XTP_FORCES_H
+#define VOTCA_XTP_FORCES_H
 
 
 #include <votca/xtp/qmatom.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/qminterface.h>
@@ -42,7 +42,7 @@ namespace votca {
             void Initialize(tools::Property &options);
             void Calculate(double energy);
 
-            void setLog(ctp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -54,7 +54,7 @@ namespace votca {
         private:
             
             Eigen::Vector3d NumForceForward(double energy, int atom_index);
-            Eigen::Vector3d NumForceCentral(double energy, int atom_index);
+            Eigen::Vector3d NumForceCentral(int atom_index);
             void RemoveTotalForce();
 
             double _displacement;
@@ -70,9 +70,9 @@ namespace votca {
             bool _remove_total_force;
 
             Eigen::MatrixX3d _forces;
-            ctp::Logger *_pLog;
+            Logger *_pLog;
         };
 
     }
 }
-#endif /* FORCES_H */
+#endif // VOTCA_XTP_FORCES_H

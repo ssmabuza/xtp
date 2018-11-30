@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,13 +17,19 @@
  *
  */
 
+#include <votca/xtp/topology.h>
+#include <votca/xtp/molecule.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/segmenttype.h>
+#include <votca/xtp/fragment.h>
+#include <votca/xtp/atom.h>
 
 #include <votca/xtp/statesaversqlite.h>
 #include <votca/tools/statement.h>
 
 namespace votca { namespace xtp {
 
-void StateSaverSQLite::Open(ctp::Topology& qmtop, const string &file, bool lock) {
+void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
     _sqlfile = file;
     if (lock) this->LockStateFile();
     _db.OpenHelper(file.c_str());
@@ -80,7 +86,6 @@ void StateSaverSQLite::WriteFrame() {
     this->WriteFragments(hasAlready);
     this->WriteAtoms(hasAlready);
     this->WritePairs(hasAlready);
-    this->WriteSuperExchange(hasAlready);
 
     _db.EndTransaction();
 
@@ -150,12 +155,12 @@ void StateSaverSQLite::WriteMolecules(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    std::vector < ctp::Molecule* > ::iterator mit;
+    std::vector < Molecule* > ::iterator mit;
     for (mit = _qmtop->Molecules().begin();
             mit < _qmtop->Molecules().end();
             mit++) {
 
-        ctp::Molecule *mol = *mit;
+        Molecule *mol = *mit;
 
         stmt->Bind(2, mol->getTopology()->getDatabaseId());
         stmt->Bind(3, mol->getId());
@@ -189,12 +194,12 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
         return; // nothing to do here
     }
 
-    std::vector < ctp::SegmentType* > ::iterator typeit;
+    std::vector < SegmentType* > ::iterator typeit;
     for (typeit = _qmtop->SegmentTypes().begin();
             typeit < _qmtop->SegmentTypes().end();
             typeit++) {
 
-        ctp::SegmentType *type = *typeit;
+        SegmentType *type = *typeit;
 
         if (!update) {
             stmt->Bind(1, _qmtop->getDatabaseId());
@@ -277,7 +282,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            "?, ?, ?, ? "
                            ")");
    
-    for (ctp::Segment *seg: _qmtop->Segments()) {
+    for (Segment *seg: _qmtop->Segments()) {
     
             stmt->Bind(1, _qmtop->getDatabaseId());
             stmt->Bind(2, seg->getTopology()->getDatabaseId());
@@ -355,7 +360,7 @@ void StateSaverSQLite::WriteFragments(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    for (ctp::Fragment *frag: _qmtop->Fragments()) {
+    for (Fragment *frag: _qmtop->Fragments()) {
 
         stmt->Bind(2, frag->getTopology()->getDatabaseId());
         stmt->Bind(3, frag->getId());
@@ -409,7 +414,7 @@ void StateSaverSQLite::WriteAtoms(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    for (ctp::Atom *atm:_qmtop->Atoms()) {
+    for (Atom *atm:_qmtop->Atoms()) {
         stmt->Bind(2, atm->getTopology()->getDatabaseId());
         stmt->Bind(3, atm->getId());
         stmt->Bind(4, atm->getName());
@@ -484,8 +489,7 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "?, ?, ?, ?, "
                            "? "
                            ")");
-
-    for (ctp::QMPair *pair: _qmtop->NBList()) {
+    for (QMPair *pair: _qmtop->NBList()) {
 
             int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
             int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
@@ -531,65 +535,6 @@ void StateSaverSQLite::WritePairs(bool update) {
     stmt = NULL;
 }
 
-void StateSaverSQLite::WriteSuperExchange(bool update) {
-    if ( ! _qmtop->NBList().getSuperExchangeTypes().size() ) { return; }
-    
-    cout << ", super-exchange" << flush;
-
-    Statement *stmt;
-    
-    // Find out whether pairs for this topology have already been created
-    stmt = _db.Prepare("SELECT frame FROM superExchange WHERE top = ?;");
-    stmt->Bind(1, _qmtop->getDatabaseId());
-    if (stmt->Step() == SQLITE_DONE) {        
-        cout << " (create)" << flush;
-        delete stmt;
-    }
-    else { 
-        cout << " (recreate)" << flush;        
-        stmt = _db.Prepare("DELETE FROM superExchange;");
-        stmt->Step();
-        delete stmt;
-        stmt = NULL;
-        stmt = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='pairs' ;");
-        stmt->Step();
-        delete stmt;
-    }
-    
-    stmt = NULL;
-
-
-    stmt = _db.Prepare("INSERT INTO superExchange ("
-                           "frame, top, type"
-                           ") VALUES ("
-                           "?, ?, ?"
-                           ")");
-
-    list< ctp::QMNBList::SuperExchangeType* >::const_iterator seit;
-
-    for (seit = _qmtop->NBList().getSuperExchangeTypes().begin();
-         seit != _qmtop->NBList().getSuperExchangeTypes().end();
-         seit++) {
-
-        ctp::QMNBList::SuperExchangeType *seType = *seit;
-
-        stmt->Bind(1, _qmtop->getDatabaseId());
-        stmt->Bind(2, _qmtop->getDatabaseId());
-        stmt->Bind(3, seType->asString());
-
-        stmt->InsertStep();
-        stmt->Reset();
-    }
-
-    delete stmt;
-    stmt = NULL;    
-    
-    return;
-}
-
-
-
-
 bool StateSaverSQLite::NextFrame() {
     this->LockStateFile();
     bool hasNextFrame = false;
@@ -624,9 +569,7 @@ void StateSaverSQLite::ReadFrame() {
     this->ReadSegments(topId);
     this->ReadFragments(topId);
     this->ReadAtoms(topId);    
-    this->ReadPairs(topId);
-    this->ReadSuperExchange(topId);
-    
+    this->ReadPairs(topId);    
     cout << ". " << endl;
 }
 
@@ -691,7 +634,7 @@ void StateSaverSQLite::ReadSegTypes(int topId) {
 
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
-        ctp::SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
+        SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
         type->setBasisName(stmt->Column<string>(1));
         type->setOrbitalsFile(stmt->Column<string>(2));
         type->setQMCoordsFile(stmt->Column<string>(4));
@@ -766,7 +709,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
         bool has_s = (hs == 1) ? true : false;
         bool has_t = (ht == 1) ? true : false;
 
-        ctp::Segment *seg = _qmtop->AddSegment(name);
+        Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
         seg->setType(_qmtop->getSegmentType(type));
         seg->setPos(vec(X, Y, Z));
@@ -839,7 +782,7 @@ void StateSaverSQLite::ReadFragments(int topId) {
         if (leg2 >= 0) {trihedron.push_back(leg2);}
         if (leg3 >= 0) {trihedron.push_back(leg3);}
 
-        ctp::Fragment *frag = _qmtop->AddFragment(name);
+        Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
         frag->setPos(vec(posX, posY, posZ));
@@ -888,7 +831,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
         double  qmPosZ = stmt->Column<double>(13);
         string  element = stmt->Column<string>(14);
 
-        ctp::Atom *atm = _qmtop->AddAtom(name);
+        Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
         atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
         atm->setElement(element);
@@ -924,7 +867,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
-    ctp::QMNBList & nblist=_qmtop->NBList();
+    QMNBList & nblist=_qmtop->NBList();
 
     while (stmt->Step() != SQLITE_DONE) {
         
@@ -953,7 +896,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
         
-        ctp::QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
+        QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2),false);
         
         bool has_e = (he == 0) ? false : true;
@@ -991,30 +934,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
 
 }
 
-
-void StateSaverSQLite::ReadSuperExchange(int topId) {
-    
-    cout << ", super-exchange" << flush;
-
-    Statement *stmt = _db.Prepare("SELECT "
-                                  "type "
-                                  "FROM superExchange "
-                                  "WHERE top = ?;");
-
-    stmt->Bind(1, topId);
-    
-    while (stmt->Step() != SQLITE_DONE) {
-        string type = stmt->Column<string>(0);        
-        _qmtop->NBList().AddSuperExchangeType(type);
-    }
-    delete stmt;
-    stmt = NULL;    
-    
-    return;
-}
-
-
-bool StateSaverSQLite::HasTopology(ctp::Topology *top) {
+bool StateSaverSQLite::HasTopology(Topology *top) {
 
     // Determine from topology ID whether database already stores a
     // (previous) copy

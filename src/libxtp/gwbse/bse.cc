@@ -20,7 +20,7 @@
 
 #include <votca/xtp/bse.h>
 #include <votca/tools/linalg.h>
-
+#include <votca/xtp/aomatrix.h>
 #include "votca/xtp/qmstate.h"
 using boost::format;
 using std::flush;
@@ -32,10 +32,10 @@ namespace votca {
       MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
-      CTP_LOG(ctp::logDEBUG, *_log)
-        << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
-      CTP_LOG(ctp::logDEBUG, *_log)
-        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
@@ -45,10 +45,10 @@ namespace votca {
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
       Add_Hx<real_gwbse>(H,2.0);
-      CTP_LOG(ctp::logDEBUG, *_log)
-        << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
-      CTP_LOG(ctp::logDEBUG, *_log)
-        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
       return;
     }
@@ -82,15 +82,14 @@ namespace votca {
         Eigen::MatrixXd AmB=ApB;
         Add_Hd2<double>(AmB,-1.0);
  
-        
         Add_Hx<double>(ApB,4.0);
         Add_Hd2<double>(ApB,1.0);
-        CTP_LOG(ctp::logDEBUG, *_log)
-        << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
+        XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Setup singlet hamiltonian " << flush;
      
       // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
       //(A-B) is not needed any longer and can be overwritten
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(AmB);
       
        for (int i=0;i<AmB.rows();++i){
@@ -100,25 +99,24 @@ namespace votca {
         }
 
       if(L.info()!=0){
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
         throw std::runtime_error("Cholesky decompostion failed");
       }else{
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was successful"<<flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() <<" Cholesky decomposition of KAA-KAB was successful"<<flush;
       }
-      
       Eigen::MatrixXd temp= ApB*AmB;
       ApB.noalias() =AmB.transpose()*temp;
       temp.resize(0,0);
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;     
-      CTP_LOG(ctp::logDEBUG, *_log)
-        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       bool success_diag=tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors ,_bse_nmax);
       if(!success_diag){
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Could not solve problem" << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Could not solve problem" << flush;
       }else{
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
       }
       ApB.resize(0,0);
       eigenvalues=eigenvalues.cwiseSqrt();
@@ -366,16 +364,16 @@ template <typename T>
     }
 
     void BSE::printFragInfo(const Population& pop, int i){
-      CTP_LOG(ctp::logINFO, *_log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+      XTP_LOG(logINFO, *_log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
               % (100.0 * pop.popH[i](0)) % (100.0 * pop.popE[i](0)) % (pop.Crgs[i](0)) % (pop.Crgs[i](0) + pop.popGs(0)) << flush;
-      CTP_LOG(ctp::logINFO, *_log) << format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+      XTP_LOG(logINFO, *_log) << format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
               % (100.0 * pop.popH[i](1)) % (100.0 * pop.popE[i](1)) % (pop.Crgs[i](1)) % (pop.Crgs[i](1) + pop.popGs(1)) << flush;
       return;
     }
 
     void BSE::printWeights(int i_bse, double weight){
       if (weight > _min_print_weight) {
-        CTP_LOG(ctp::logINFO, *_log) << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+        XTP_LOG(logINFO, *_log) << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                 % (_homo - _index2v[i_bse]) % (_index2c[i_bse] - _homo - 1) % (100.0 * weight) << flush;
       }
       return;
@@ -386,14 +384,14 @@ template <typename T>
       Interaction act;
       Population pop;
       QMStateType singlet=QMStateType(QMStateType::Singlet);
-      std::vector< tools::vec > transition_dipoles=CalcCoupledTransition_Dipoles(dftbasis);
+      std::vector< Eigen::Vector3d > transition_dipoles=CalcCoupledTransition_Dipoles(dftbasis);
       _orbitals.TransitionDipoles()=transition_dipoles;
       std::vector<double> oscs = _orbitals.Oscillatorstrengths();
       
       if(tools::globals::verbose){
         act = Analyze_eh_interaction(singlet);
       }
-      if(dftbasis.getAOBasisFragA()>0){
+      if(dftbasis.getAOBasisFragA() > 0 && dftbasis.getAOBasisFragB()>0){
         pop=FragmentPopulations(singlet,dftbasis);
         _orbitals.setFragmentChargesSingEXC(pop.Crgs);
         _orbitals.setFragment_E_localisation_singlet(pop.popE);
@@ -402,21 +400,21 @@ template <typename T>
       }
       
       double hrt2ev = tools::conv::hrt2ev;
-      CTP_LOG(ctp::logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
+      XTP_LOG(logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {     
-        const tools::vec& trdip = transition_dipoles[i];
+        const Eigen::Vector3d& trdip = transition_dipoles[i];
         double osc = oscs[i];
         if (tools::globals::verbose) {
-          CTP_LOG(ctp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+          XTP_LOG(logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
                   % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i)))
                   % (hrt2ev * act.qp_contrib(i)) % (hrt2ev * act.exchange_contrib(i)) % (hrt2ev * act.direct_contrib(i)) << flush;
         } else {
-          CTP_LOG(ctp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+          XTP_LOG(logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                   % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i))) << flush;
         }
-        CTP_LOG(ctp::logINFO, *_log) << format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
-                % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip * trdip) % osc << flush;
+        XTP_LOG(logINFO, *_log) << format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
+                % trdip[0] % trdip[1] % trdip[2] % (trdip.squaredNorm()) % osc << flush;
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
           double weight = std::pow(_bse_singlet_coefficients(i_bse, i), 2);
@@ -430,7 +428,7 @@ template <typename T>
           printFragInfo(pop, i);
         }
 
-        CTP_LOG(ctp::logINFO, *_log) << flush;
+        XTP_LOG(logINFO, *_log) << flush;
       }
       return;
     }
@@ -453,15 +451,15 @@ template <typename T>
         _orbitals.setFragment_H_localisation_triplet(pop.popH);
         _orbitals.setFragmentChargesGS(pop.popGs);
       }
-      CTP_LOG(ctp::logINFO, *_log) << "  ====== triplet energies (eV) ====== " << flush;
+      XTP_LOG(logINFO, *_log) << "  ====== triplet energies (eV) ====== " << flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {    
         if (tools::globals::verbose) {
-          CTP_LOG(ctp::logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
+          XTP_LOG(logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))
                   % (tools::conv::hrt2ev * act.qp_contrib(i)) % (tools::conv::hrt2ev *act.direct_contrib(i)) << flush;
         } else {
-          CTP_LOG(ctp::logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+          XTP_LOG(logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i))) << flush;
         }
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
@@ -473,7 +471,7 @@ template <typename T>
         if (dftbasis.getAOBasisFragA() > 0) {
           printFragInfo(pop, i);
         }
-        CTP_LOG(ctp::logINFO, *_log) << format("   ") << flush;
+        XTP_LOG(logINFO, *_log) << format("   ") << flush;
       }
       // storage to orbitals object
 
@@ -529,7 +527,7 @@ template <typename T>
       // Mulliken fragment population analysis
         AOOverlap dftoverlap;
         dftoverlap.Fill(dftbasis);
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
         // ground state populations
         Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
         Eigen::VectorXd nuccharges = _orbitals.FragmentNuclearCharges(dftbasis.getAOBasisFragA());
@@ -550,7 +548,7 @@ template <typename T>
           Eigen::VectorXd diff = popsH - popsE;
           pop.Crgs.push_back(diff);
         }
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Ran Excitation fragment population analysis " << flush;
      
       return pop;
     }
@@ -569,30 +567,32 @@ template <typename T>
       for (int i_comp = 0; i_comp < 3; i_comp++) {
         interlevel_dipoles.push_back(occ.transpose() * dft_dipole.Matrix()[i_comp] * empty);
       }
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
       return interlevel_dipoles;
     }
 
-    std::vector<tools::vec > BSE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
+    std::vector<Eigen::Vector3d > BSE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
     std::vector<Eigen::MatrixXd > interlevel_dipoles= CalcFreeTransition_Dipoles(dftbasis);
-    std::vector<tools::vec > dipols;
-      double sqrt2 = sqrt(2.0);
+    std::vector<Eigen::Vector3d > dipols;
+    const double sqrt2 = sqrt(2.0);
       for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
-        tools::vec tdipole = tools::vec(0, 0, 0);
+        Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
         for (int c = 0; c < _bse_ctotal; c++) {
           for (int v = 0; v < _bse_vtotal; v++) {
             int index_vc = _bse_ctotal * v + c;
-            double factor = sqrt2 * _bse_singlet_coefficients(index_vc, i_exc);
+            double factor = _bse_singlet_coefficients(index_vc, i_exc);
             if (_bse_singlet_coefficients_AR.rows()>0) {
-              factor += sqrt2 * _bse_singlet_coefficients_AR(index_vc, i_exc);
+              factor += _bse_singlet_coefficients_AR(index_vc, i_exc);
             }
-            // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
-            tdipole.x() += factor * interlevel_dipoles[0](v, c);
-            tdipole.y() += factor * interlevel_dipoles[1](v, c);
-            tdipole.z() += factor * interlevel_dipoles[2](v, c);
+            for(int i=0;i<3;i++){
+                // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+            tdipole[i] += factor * interlevel_dipoles[i](v, c);
+            }
+
           }
         }
-        dipols.push_back(tdipole);     
+        
+        dipols.push_back(-sqrt2 *tdipole);     //- because electrons are negative
       }
       return dipols;
     }

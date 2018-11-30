@@ -22,8 +22,8 @@
 #define	VOTCA_XTP_SQLAPPLICATION_H
 
 
-#include <votca/ctp/topology.h>
-#include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/topology.h>
+#include <votca/xtp/qmcalculator.h>
 
 #include <votca/xtp/xtpapplication.h>
 #include <votca/xtp/statesaversqlite.h>
@@ -40,7 +40,7 @@ public:
     SqlApplication();
 
     ~SqlApplication() {
-        for (ctp::QMCalculator* calculator : _calculators) {
+        for (QMCalculator* calculator : _calculators) {
             delete calculator;
         }
     };
@@ -53,12 +53,12 @@ public:
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 
-   void AddCalculator(ctp::QMCalculator *calculator);
+   void AddCalculator(QMCalculator *calculator);
 
 protected:
 
-    ctp::Topology           _top;
-    list< ctp::QMCalculator* >   _calculators;
+    Topology           _top;
+    list< QMCalculator* >   _calculators;
 
 };
 
@@ -72,7 +72,7 @@ protected:
 
 
 
-#endif /* _QMApplication_H */
+#endif // VOTCA_XTP_SQLAPPLICATION_H
 
 
 
