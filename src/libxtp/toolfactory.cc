@@ -31,6 +31,7 @@
 #include "tools/partialcharges.h"
 #include "tools/densityanalysis.h"
 #include "tools/coupling.h"
+#include "tools/transientabsorption.h"
 
 namespace votca { namespace xtp {
 
@@ -48,6 +49,7 @@ void QMToolFactory::RegisterAll(void)
         QMTools().Register<Partialcharges>     ("partialcharges");
         QMTools().Register<DensityAnalysis>    ("densityanalysis");
         QMTools().Register<Coupling>           ("coupling");
+        QMTools().Register<TransientAbsorption> ("transientabsorption");
 
 }
 
