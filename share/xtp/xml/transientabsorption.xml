@@ -1,0 +1,12 @@
+<options>
+
+<transientabsorption help="Tool to generate molecular transient absorption data from *.orb" section="sec:gencube">
+
+        <output help="Output file" default="system.trans">system.trans</output>
+        <input help="Input file" default="system.orb">system.orb</input>
+
+</transientabsorption>
+
+</options>
+
+
