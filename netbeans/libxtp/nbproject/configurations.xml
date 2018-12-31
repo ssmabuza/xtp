@@ -40,6 +40,7 @@
         <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
+        <itemPath>../../src/libxtp/tools/transientabsorption.h</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="f5" displayName="Executables" projectFiles="true">
@@ -2089,6 +2090,11 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/transientabsorption.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
@@ -3060,6 +3066,11 @@
       <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/transientabsorption.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
       </item>
