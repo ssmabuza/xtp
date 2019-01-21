@@ -52,7 +52,7 @@ namespace votca {
             int _removedfunctions=0;
             Eigen::MatrixXd _inv_sqrt;
 
-            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* shell, const AOShell* shell_row, const AOShell* shell_col);
+            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell, const AOShell& shell_row, const AOShell& shell_col);
 
         };
 
@@ -61,7 +61,7 @@ namespace votca {
 
             void Fill(const AOBasis& auxbasis,const AOBasis& dftbasis);
 
-            int getSize() const{return _matrix.size();}
+            int size() const{return _matrix.size();}
 
             Symmetric_Matrix& operator[](int i) {
                 return _matrix[i];
@@ -148,7 +148,7 @@ namespace votca {
             const AOBasis* _dftbasis=nullptr;
             const Eigen::MatrixXd* _dft_orbitals=nullptr;
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
+            void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell& auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
         };
     

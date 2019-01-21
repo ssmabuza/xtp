@@ -15,20 +15,26 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE apolararsite_test
+#define BOOST_TEST_MODULE qmatom_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/qmatom.h>
+
 
 using namespace votca::xtp;
 
-BOOST_AUTO_TEST_SUITE(apolararsite_test)
+BOOST_AUTO_TEST_SUITE(qmatom_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) { APolarSite ps(1, "ps1"); }
+BOOST_AUTO_TEST_CASE(constructors_test) {
+    Eigen::Vector3d pos=Eigen::Vector3d::Zero();
+    QMAtom a(1,"C",pos);
 
-BOOST_AUTO_TEST_CASE(getters_test) {
-  APolarSite ps(1,"ps2");
-  BOOST_CHECK_EQUAL(ps.getId(),1);
-  BOOST_CHECK_EQUAL(ps.getName(),"ps2");
+
 }
+
+BOOST_AUTO_TEST_CASE(translaterotate_test) {
+  
+}
+
+
 
 BOOST_AUTO_TEST_SUITE_END()

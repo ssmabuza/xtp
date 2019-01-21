@@ -17,45 +17,22 @@
  *
  */
 
-#ifndef __XTP_MULLIKEN__H
-#define	__XTP_MULLIKEN__H
+#include <votca/xtp/mmregion.h>
 
 
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+namespace votca {
+    namespace xtp {
 
 
-/**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of mulliken partial charges
-*
-* 
-* 
-*/
+        void MMRegion::WriteToCpt(CheckpointWriter& w)const{
 
+            
+        }
 
-
-namespace votca { namespace xtp {
-    
-class Mulliken{
-public:
-    
-    Mulliken(){}
-   ~Mulliken(){};
-    
-  
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &basis,bool _do_transition);
+        void MMRegion::ReadFromCpt(CheckpointReader& r){
+            
+        }
   
 
-   
-     
- 
-    
-};
-
-
-
-
-}}
-
-#endif	/* ESPFIT_H */
+    }
+}

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DFTCOUPLING_H
-#define	_VOTCA_XTP_DFTCOUPLING_H
+#ifndef VOTCA_XTP_DFTCOUPLING_H
+#define	VOTCA_XTP_DFTCOUPLING_H
 
 #include <votca/xtp/couplingbase.h>
 
@@ -67,17 +67,12 @@ private:
     int _numberofstatesA;
     int _numberofstatesB;
     
-    
     std::pair<int,int> Range_orbA;
     std::pair<int,int> Range_orbB;
-    
-  
-
-
 };
 
 }}
 
-#endif	/* _VOTCA_XTP_DFTCOUPLING_H */
+#endif	// VOTCA_XTP_DFTCOUPLING_H
 
 

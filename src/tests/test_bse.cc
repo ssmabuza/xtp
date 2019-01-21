@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian){
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
@@ -155,7 +155,7 @@ opt.homo=4;
 opt.qpmin=0;
 
 orbitals.setBSEindices(0,16);
-votca::ctp::Logger log;
+  Logger log;
 BSE bse=BSE(orbitals,log,Mmn,Hqp);
 
 orbitals.setTDAApprox(true);

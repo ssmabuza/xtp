@@ -22,7 +22,6 @@
 #include <iostream>
 #include <votca/xtp/sqlapplication.h>
 #include <votca/xtp/calculatorfactory.h>
-#include <votca/ctp/calculatorfactory.h>
 
 
 using namespace std;
@@ -55,7 +54,6 @@ namespace propt = boost::program_options;
 
 void XtpRun::Initialize() {
   xtp::Calculatorfactory::RegisterAll();
-  ctp::Calculatorfactory::RegisterAll();
   xtp::SqlApplication::Initialize();
 
   AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
@@ -69,26 +67,10 @@ void XtpRun::Initialize() {
 bool XtpRun::EvaluateOptions() {
 
   string helpdir = "xtp/xml";
-  string ctphelpdir = "ctp/xml";
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
     for (const auto& calc:xtp::Calculators().getObjects()) {
       PrintDescription(std::cout, calc.first, helpdir, Application::HelpShort);
-    }
-    cout << "Available (wrapped) CTP calculators: \n";
-    for (const auto& calc:ctp::Calculators().getObjects()) {
-      bool printctp = true;
-      std::string ctpcalc = calc.first.c_str();
-      for (const auto& xtpcalc:xtp::Calculators().getObjects()) {
-        if (ctpcalc.compare(xtpcalc.first.c_str()) == 0) {
-          printctp = false;
-          break;
-        }
-      }
-      if (printctp) {
-        PrintDescription(std::cout, calc.first, ctphelpdir, Application::HelpShort);
-      }
-
     }
     StopExecution();
     return true;
@@ -97,7 +79,7 @@ bool XtpRun::EvaluateOptions() {
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no calculator is given");
-    Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
     for (const std::string &n: tok) {
       // loop over calculators
@@ -110,24 +92,6 @@ bool XtpRun::EvaluateOptions() {
           break;
         }
       }
-      for (const auto& calc:ctp::Calculators().getObjects()) {
-
-        if (n.compare(calc.first.c_str()) == 0) {
-          bool printctp = true;
-          std::string ctpcalc = calc.first.c_str();
-          for (const auto& xtpcalc:xtp::Calculators().getObjects()) {
-            if (ctpcalc.compare(xtpcalc.first.c_str()) == 0) {
-              printctp = false;
-              break;
-            }
-          }
-          if (printctp) {
-            PrintDescription(std::cout, calc.first, "ctp/xml", Application::HelpLong);
-            printerror = false;
-            break;
-          }
-        }
-      }
       if (printerror) cout << "Calculator " << n << " does not exist\n";
     }
     StopExecution();
@@ -138,29 +102,19 @@ bool XtpRun::EvaluateOptions() {
   CheckRequired("options", "Please provide an xml file with calculator options");
   CheckRequired("execute", "Nothing to do here: Abort.");
 
-  Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
- for (const std::string &n: calcs) {
-    bool _found_calc = false;
+  tools::Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
+  for (const std::string &n: calcs) {
+    bool found_calc = false;
     for (const auto& calc:xtp::Calculators().getObjects()) {
 
       if (n.compare(calc.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
         xtp::SqlApplication::AddCalculator(xtp::Calculators().Create(n.c_str()));
-        _found_calc = true;
+        found_calc = true;
       }
     }
 
-    if (!_found_calc) {
-      for (const auto& calc:ctp::Calculators().getObjects()) {
-
-        if (n.compare(calc.first.c_str()) == 0) {
-          _found_calc = true;
-          cout << " This is a CTP app" << endl;
-          xtp::SqlApplication::AddCalculator(ctp::Calculators().Create(n.c_str()));
-        }
-      }
-    }
-    if(!_found_calc){
+    if(!found_calc){
       cout << "Calculator " << n << " does not exist\n";
       StopExecution();
     }
@@ -168,12 +122,12 @@ bool XtpRun::EvaluateOptions() {
       load_property_from_xml(_options, _op_vm["options"].as<string>());
     }
   }
-    return true;
-  }
+  return true;
+}
 
-  int main(int argc, char** argv) {
+int main(int argc, char** argv) {
 
-    XtpRun xtprun;
-    return xtprun.Exec(argc, argv);
+  XtpRun xtprun;
+  return xtprun.Exec(argc, argv);
 
-  }
+}

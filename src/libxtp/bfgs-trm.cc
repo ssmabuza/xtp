@@ -18,6 +18,7 @@
  */
 
 #include <votca/xtp/bfgs-trm.h>
+#include <votca/xtp/atom.h>
 #include <boost/format.hpp>
 #include <votca/xtp/trustregion.h>
 
@@ -64,7 +65,7 @@ namespace votca {
         } else if (_iteration == _max_iteration) {
           _success = false;
           if (_logging) {
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: not converged after %2$d iterations ")
+                    XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: not converged after %2$d iterations ")
                     % _iteration % _max_iteration).str() << std::flush;
           }
         }
@@ -79,9 +80,9 @@ namespace votca {
         // total energy has unexpectedly increased, half the trust radius
         _trust_radius = 0.25 * _trust_radius;
         if (_logging) {
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step rejected ")
+          XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step rejected ")
                  % _iteration % cost_delta).str() << std::flush;
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$2.4e")
+          XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$2.4e")
                   % _iteration % _trust_radius).str() << std::flush;
         }
       } else {
@@ -96,9 +97,9 @@ namespace votca {
           _trust_radius = 0.25 * _trust_radius;
         }
         if (_logging) {
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f step accepted ")
+          XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f step accepted ")
                   % _iteration % tr_check).str() << std::flush;
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$2.4e")
+          XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$2.4e")
                   % _iteration % _trust_radius).str() << std::flush;
         }
       }

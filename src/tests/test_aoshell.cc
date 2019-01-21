@@ -57,26 +57,26 @@ xyzfile << " Al" << std::endl;
 xyzfile << " Al            .000000     .000000     .000000" << std::endl;
 xyzfile.close();
 
-Orbitals orbitals;
-orbitals.LoadFromXYZ("Al.xyz");
+QMMolecule mol=QMMolecule("",0);
+mol.LoadFromXYZ("Al.xyz");
 BasisSet basis;
 basis.LoadBasisSet("largeshell.xml");
 AOBasis aobasis;
-aobasis.AOBasisFill(basis,orbitals.QMAtoms());
+aobasis.AOBasisFill(basis,mol);
 
-const AOShell* shell=aobasis.getShell(0);
+const AOShell& shell=aobasis.getShell(0);
 
-votca::tools::vec gridpos=votca::tools::vec(1.0);
+Eigen::Vector3d gridpos=Eigen::Vector3d::Ones();
 Eigen::VectorXd aoval=Eigen::VectorXd::Zero(aobasis.AOBasisSize());
 Eigen::MatrixX3d aograd=Eigen::MatrixX3d::Zero(aobasis.AOBasisSize(),3);
 Eigen::Block<Eigen::MatrixX3d> grad_block=aograd.block(0,0,aobasis.AOBasisSize(),3);
 Eigen::VectorBlock<Eigen::VectorXd> ao_block=aoval.segment(0,aobasis.AOBasisSize());
 
-shell->EvalAOspace(ao_block,grad_block,gridpos);
+shell.EvalAOspace(ao_block,grad_block,gridpos);
 
 Eigen::VectorXd aoval_2=Eigen::VectorXd::Zero(aobasis.AOBasisSize());
 Eigen::VectorBlock<Eigen::VectorXd> ao_block_2=aoval_2.segment(0,aobasis.AOBasisSize());
-shell->EvalAOspace(ao_block_2,gridpos);
+shell.EvalAOspace(ao_block_2,gridpos);
 
 
 Eigen::VectorXd aoval_ref=Eigen::VectorXd::Zero(aobasis.AOBasisSize());

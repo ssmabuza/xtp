@@ -17,9 +17,9 @@
  *
  */
 
-#ifndef _VOTCA_XTP_GWBSE_H
-#define _VOTCA_XTP_GWBSE_H
-#include <votca/ctp/logger.h>
+#ifndef VOTCA_XTP_GWBSE_H
+#define VOTCA_XTP_GWBSE_H
+#include <votca/xtp/logger.h>
 #include <votca/tools/property.h>
 #include <fstream>
 #include <votca/xtp/eigen.h>
@@ -60,7 +60,7 @@ class GWBSE {
 
   std::string Identify() { return "gwbse"; }
 
-  void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
 
@@ -70,7 +70,7 @@ class GWBSE {
 
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
  int CountCoreLevels();
- ctp::Logger* _pLog;
+ Logger* _pLog;
  Orbitals& _orbitals;
   
   // program tasks
@@ -110,4 +110,4 @@ class GWBSE {
 }
 }
 
-#endif /* _VOTCA_XTP_GWBSE_H */
+#endif // VOTCA_XTP_GWBSE_H 

@@ -17,24 +17,16 @@
  *
  */
 
-#ifndef __QMINTERFACE__H
-#define	__QMINTERFACE__H
+#ifndef VOTCA_XTP_QMMINTERFACE_H
+#define	VOTCA_XTP_QMMINTERFACE_H
 
+namespace votca { 
+  
+  namespace xtp {
 
+    class Segment;
+    class QMMolecule;
 
-
-#include <votca/ctp/apolarsite.h>
-#include <votca/xtp/qmatom.h>
-#include <votca/ctp/polarseg.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/polartop.h>
-#include <votca/tools/elements.h>
-#include <votca/xtp/orbitals.h>
-
-
-namespace votca { namespace xtp {
-
-    
 // ========================================================================== //
 // QM-MM INTERFACE CLASS - CONVERTS BETWEEN QMATOMS <> POLAR OBJECTS          //
 // ========================================================================== //
@@ -42,24 +34,11 @@ namespace votca { namespace xtp {
 class QMInterface
 {
 public:
-    
-    // CONVERSION QM -> MM
-    ctp::APolarSite *Convert(QMAtom *atm, int id = -1);
-    
-    ctp::PolarSeg Convert(std::vector<QMAtom*> &atms);
-    
-    std::vector<QMAtom *> Convert( std::vector<ctp::Segment* > segments);
-    
-    void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb);
-    std::vector<std::shared_ptr<ctp::PolarSeg> > GenerateMultipoleList(ctp::PolarTop *ptop  );
-    void Orbitals2Segment(ctp::Segment& segment, const Orbitals& orbitals);
-    
+
+    QMMolecule Convert( std::vector<Segment* > segments);
      
 private:
-    void addMMAtomtoOrb(ctp::APolarSite * aps,Orbitals &orb, bool with_polarisation);
-    // Allocates polarizabilities in A**3 to element types
-    tools::Elements _element;
-   
+
 };
 
 
@@ -67,4 +46,4 @@ private:
 
 }}
 
-#endif
+#endif // VOTCA_XTP_QMMINTERFACE_H

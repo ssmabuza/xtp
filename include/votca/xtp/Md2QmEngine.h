@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,19 +17,22 @@
  *
  */
 
-#ifndef _MD2QMENGINE_H
-#define _MD2QMENGINE_H
+#ifndef VOTCA_XTP_MD2QMENGINE_H
+#define VOTCA_XTP_MD2QMENGINE_H
 
 #include <votca/xtp/calculatorfactory.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/statesaversqlite.h>
-#include <votca/ctp/topology.h>
+#include <votca/xtp/topology.h>
 #include <votca/csg/topology.h>
 
-namespace CTP = votca::ctp;
 namespace XTP = votca::xtp;
 namespace CSG = votca::csg;
 namespace TOOLS = votca::tools;
+
+namespace votca{
+namespace xtp{
+
 
 class Md2QmEngine
 {
@@ -38,60 +41,61 @@ public:
     Md2QmEngine() { };
    ~Md2QmEngine();
 
-    void Initialize(const string &xmlfile);
+    void Initialize(const std::string &xmlfile);
     void PrintInfo();
 
     // Converts atomistic to QM topology
-    void            Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop);
-    // Creates an QM molecule container based on MD molecule and the xml map 
-    CTP::Molecule  *MoleculeFactory(CSG::Molecule *molMDTemplate);
+    void            Md2Qm(csg::Topology *mdtop, Topology *qmtop);
+    // Creates an QM molecule container based on MD molecule and the xml std::map 
+    Molecule  *MoleculeFactory(csg::Molecule *molMDTemplate);
     // Partitions the QM molecule on segments and fragments
-    CTP::Molecule  *ExportMolecule(CTP::Molecule *molQM, CTP::Topology *qmtop);
-    // outputs the mapping, and other useful info
-    void CheckProduct(CTP::Topology *outtop, const string &pdbfile);
-
+    Molecule  *ExportMolecule(Molecule *molQM, Topology *qmtop);
 
 private:
 
-    Property _typology;
+    tools::Property _typology;
     
-    // Type vectors
-    vector < CTP::Molecule* >    _molecule_types;
-    vector < CTP::Segment* >     _segment_types;
-    vector < CTP::SegmentType* > _qmUnits;
-    vector < CTP::Fragment* >    _fragment_types;
-    vector < CTP::Atom* >        _atom_types;    
+    // Type std::vectors
+    std::vector < Molecule* >    _molecule_types;
+    std::vector < Segment* >     _segment_types;
+    std::vector < SegmentType* > _qmUnits;
+    std::vector < Fragment* >    _fragment_types;
+    std::vector < Atom* >        _atom_types;    
 
     // MD <-> QM Maps
-    map < string, map < int, map < string, CTP::Atom* > > >
+    std::map < std::string, std::map < int, std::map < std::string, Atom* > > >
                                             _map_mol_resNr_atm_atmType;
-    map < string, CTP::Molecule* >          _map_MoleculeName_MoleculeType;
-    map < string, string >                  _map_MoleculeMDName_MoleculeName;
-    map < int, CTP::Segment* >              _map_id_segment;
+    std::map < std::string, Molecule* >          _map_MoleculeName_MoleculeType;
+    std::map < std::string, std::string >                  _map_MoleculeMDName_MoleculeName;
+    std::map < int, Segment* >              _map_id_segment;
 
 
     // Type Creators
-    CTP::Molecule    *AddMoleculeType(int molecule_id, Property *property);
-    CTP::Segment     *AddSegmentType(int segment_id, Property *property);
-    CTP::SegmentType *AddQMUnit(int unit_id, Property *property);
-    CTP::Fragment    *AddFragmentType(int fragment_id, Property *property);
-    CTP::Atom        *AddAtomType(CTP::Molecule *owner,
-                                  string residue_name,    int residue_number,
-                                  string md_atom_name,    int md_atom_id,
+    Molecule    *AddMoleculeType(int molecule_id, tools::Property *property);
+    Segment     *AddSegmentType(int segment_id, tools::Property *property);
+    SegmentType *AddQMUnit(int unit_id, tools::Property *property);
+    Fragment    *AddFragmentType(int fragment_id, tools::Property *property);
+    Atom        *AddAtomType(Molecule *owner,
+                                  std::string residue_name,    int residue_number,
+                                  std::string md_atom_name,    int md_atom_id,
                                   bool hasQMPart,         int qm_atom_id,
-                                  vec qmpos,              string element,
+                                  tools::vec qmpos,              std::string element,
                                   double weight);
     
     
 
-    const string   &getMoleculeName(const string &mdname);
-    CTP::Molecule  *getMoleculeType(const string &name);
-    CTP::Atom      *getAtomType(const string &molMdName,
-                                int resNr, const string &mdAtomName);
-    void            ReadXYZFile(string &file,
-                                 map<int, pair<string,vec> > &intCoords);
+    const std::string   &getMoleculeName(const std::string &mdname);
+    Molecule  *getMoleculeType(const std::string &name);
+    Atom      *getAtomType(const std::string &molMdName,
+                                int resNr, const std::string &mdAtomName);
+    void            ReadXYZFile(std::string &file,
+                                 std::map<int, std::pair<std::string,tools::vec> > &intCoords);
 
 
 };
 
-#endif /* _MD2QMENGINE_H */
+}
+}
+
+
+#endif // VOTCA_XTP_MD2QMENGINE_H

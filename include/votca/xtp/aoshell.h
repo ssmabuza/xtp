@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_AOSHELL__H
-#define	__XTP_AOSHELL__H
+#ifndef VOTCA_XTP_AOSHELL_H
+#define	VOTCA_XTP_AOSHELL_H
 
 
 #include <boost/math/constants/constants.hpp>
@@ -42,22 +42,22 @@ public:
     int    getPower()const{return _power;}
     double getDecay()const {return _decay;}
     const std::vector<double>& getContraction()const {return _contraction;}
-    const AOShell* getShell() const{return _aoshell;}
+    const AOShell& getShell() const{return _aoshell;}
 private:
      
     int _power; // used in pseudopotenials only
     double _decay;
     std::vector<double> _contraction;
-    AOShell* _aoshell;
+    const AOShell& _aoshell;
     double _powfactor;//used in evalspace to speed up DFT
     // private constructor, only a shell can create a primitive
-    AOGaussianPrimitive( const GaussianPrimitive& gaussian, AOShell *aoshell ) 
+    AOGaussianPrimitive( const GaussianPrimitive& gaussian, const AOShell& aoshell )
     : _power(gaussian._power),
     _decay(gaussian._decay),
     _contraction(gaussian._contraction),
     _aoshell(aoshell) {_powfactor=std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75) ; }
 
-    AOGaussianPrimitive( const AOGaussianPrimitive& gaussian, AOShell *aoshell )
+    AOGaussianPrimitive( const AOGaussianPrimitive& gaussian, const AOShell &aoshell )
     : _power(gaussian._power),
     _decay(gaussian._decay),
     _contraction(gaussian._contraction),
@@ -88,7 +88,7 @@ public:
     _nonlocal=shell._nonlocal;
     _gaussians.reserve(shell._gaussians.size());
     for(const auto& gaus:shell._gaussians){
-        _gaussians.push_back(AOGaussianPrimitive(gaus,this));
+        _gaussians.push_back(AOGaussianPrimitive(gaus,*this));
     }
         
     }
@@ -99,7 +99,7 @@ public:
     int    getOffset() const{ return _offset ;}
     int    getAtomIndex() const{ return _atomindex;}
     
-    int getLmax(  ) const{ return _Lmax;}
+    int getLmax() const{ return _Lmax;}
     
     bool isCombined()const{
         return _type.length()>1;
@@ -107,7 +107,7 @@ public:
     
     bool isNonLocal(  ) const{ return _nonlocal;}
     
-    const tools::vec& getPos() const{ return _pos; }
+    const Eigen::Vector3d& getPos() const{ return _pos; }
     double getScale() const{ return _scale; }
     
     int getSize() const{ return _gaussians.size(); }
@@ -125,8 +125,8 @@ public:
     double getMinDecay() const{return _mindecay;}
     
     
-  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const tools::vec& grid_pos ) const;
-  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const tools::vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const Eigen::Vector3d& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const Eigen::Vector3d& grid_pos ) const;
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;
@@ -135,8 +135,8 @@ public:
    
     // adds a Gaussian 
     void  addGaussian( const GaussianPrimitive& gaussian ){
-        AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, this);
-        _gaussians.push_back( aogaussian );
+        AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, *this);
+        _gaussians.emplace_back( aogaussian );
         return;
     }                                                                  
 
@@ -159,9 +159,7 @@ private:
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
                     _atomindex(atom.getAtomID()),_nonlocal(nonlocal) { ; }
             
-    
-    // only class aobasis can destruct shells
-    ~AOShell(){};
+
     
     // shell type (S, P, D))
     std::string _type;
@@ -173,7 +171,7 @@ private:
     double _mindecay;
     int _startIndex;
     int _offset;
-    tools::vec _pos;
+    Eigen::Vector3d _pos;
     int _atomindex;
     //used for ecp calculations
     bool _nonlocal;
@@ -186,5 +184,6 @@ private:
     
 }}
 
-#endif	/* AOSHELL_H */
+#endif	// VOTCA_XTP_AOSHELL_H
+
 

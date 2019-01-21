@@ -3467,6 +3467,7 @@
                 <sourceRootElem>../../../../include</sourceRootElem>
                 <sourceRootElem>../../include</sourceRootElem>
                 <sourceRootElem>../../../../include</sourceRootElem>
+<<<<<<< HEAD
                 <sourceRootElem>../../include</sourceRootElem>
                 <sourceRootElem>../../../../include</sourceRootElem>
                 <sourceRootElem>../../include</sourceRootElem>
@@ -5195,6 +5196,8 @@
                 <sourceRootElem>../../../../include</sourceRootElem>
                 <sourceRootElem>../../include</sourceRootElem>
                 <sourceRootElem>../../../../include</sourceRootElem>
+=======
+>>>>>>> origin/fix-4
             </sourceRootList>
             <confList>
                 <confElem>

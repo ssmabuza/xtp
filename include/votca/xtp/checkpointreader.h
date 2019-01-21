@@ -13,8 +13,8 @@
  * limitations under the License.
  *
  */
-#ifndef _VOTCA_XTP_CHECKPOINT_READER_H
-#define _VOTCA_XTP_CHECKPOINT_READER_H
+#ifndef VOTCA_XTP_CHECKPOINT_READER_H
+#define VOTCA_XTP_CHECKPOINT_READER_H
 
 #include <votca/xtp/eigen.h>
 #include <H5Cpp.h>
@@ -39,7 +39,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
 
     template<typename T>
     typename std::enable_if<!std::is_fundamental<T>::value>::type
-    operator()(T& var, const std::string& name){
+    operator()(T& var, const std::string& name)const{
         try{
             ReadData(_loc, var, name);
         } catch (H5::Exception& error){
@@ -54,7 +54,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
 
     template<typename T>
     typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
-    operator()(T& var, const std::string& name){
+    operator()(T& var, const std::string& name)const{
         try{
             ReadScalar(_loc, var, name);
         } catch (H5::Exception& error){
@@ -66,7 +66,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
         }
     }
 
-    void operator()(bool& v, const std::string& name){
+    void operator()(bool& v, const std::string& name)const{
         int temp = int(v);
         try{
             ReadScalar(_loc, temp, name);
@@ -80,7 +80,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
         v = static_cast<bool>(temp);
     }
 
-    void operator()(std::string& var, const std::string& name){
+    void operator()(std::string& var, const std::string& name)const{
         try{
             ReadScalar(_loc, var, name);
         } catch (H5::Exception& error){
@@ -92,7 +92,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
         }
     }
 
-    CheckpointReader openChild(const std::string& childName){
+    CheckpointReader openChild(const std::string& childName)const{
         try{
             return CheckpointReader(_loc.openGroup(childName), _path+"/"+childName);
         } catch (H5::Exception& e){
@@ -104,14 +104,14 @@ CheckpointReader(const CptLoc& loc, const std::string path):
         }
     }
 
-    int getNumDataSets(){
+    int getNumDataSets()const{
         return _loc.getNumObjs();
     }
 
 private:
-    CptLoc _loc;
+    const CptLoc _loc;
     const std::string _path;
-    void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name){
+    void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name)const{
         const H5::DataType* strType = InferDataType<std::string>::get();
 
         H5::Attribute attr = loc.openAttribute(name);
@@ -125,7 +125,7 @@ private:
 
     template <typename T>
         void ReadScalar(const CptLoc& loc, T& value,
-                        const std::string& name) {
+                        const std::string& name) const{
 
         H5::Attribute attr = loc.openAttribute(name);
         const H5::DataType* dataType = InferDataType<T>::get();
@@ -135,7 +135,7 @@ private:
 
     template <typename T>
         void ReadData(const CptLoc& loc, Eigen::MatrixBase<T>& matrix,
-                      const std::string& name) {
+                      const std::string& name) const{
 
         const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
 
@@ -179,7 +179,7 @@ private:
     template <typename T>
         typename std::enable_if<std::is_fundamental<T>::value>::type
         ReadData(const CptLoc& loc, std::vector<T>& v,
-                 const std::string& name) {
+                 const std::string& name) const{
 
         H5::DataSet dataset = loc.openDataSet(name);
         H5::DataSpace dp = dataset.getSpace();
@@ -194,17 +194,8 @@ private:
         dataset.read(&(v[0]), *dataType);
     }
 
-    void ReadData(const CptLoc& loc, votca::tools::vec& v,
-                  const std::string& name){
-
-        // read tools::vec as a vector of three elements
-        std::vector<double> data = {0,0,0};
-        ReadData(loc, data, name);
-        v = votca::tools::vec(data[0], data[1], data[2]);
-    }
-
-    void ReadData(const CptLoc& loc, std::vector<votca::tools::vec>& v,
-                  const std::string& name){
+    void ReadData(const CptLoc& loc, std::vector<Eigen::Vector3d>& v,
+                  const std::string& name)const{
 
         CptLoc parent = loc.openGroup(name);
         size_t count = parent.getNumObjs();
@@ -222,4 +213,4 @@ private:
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // _VOTCA_XTP_CHECKPOINT_READER_H
+#endif  // VOTCA_XTP_CHECKPOINT_READER_H

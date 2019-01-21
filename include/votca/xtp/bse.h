@@ -24,6 +24,7 @@
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
 namespace xtp {
@@ -32,7 +33,7 @@ class BSE {
 
  public:
  
-  BSE(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
+  BSE(Orbitals& orbitals,Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -108,7 +109,7 @@ struct Population {
 };   
  
       
-ctp::Logger &_log;
+Logger &_log;
   int  _bse_vmax;
   int  _bse_cmin;
   int  _bse_size;
@@ -156,7 +157,7 @@ ctp::Logger &_log;
 
   std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
 
-  std::vector<tools::vec > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
+  std::vector<Eigen::Vector3d > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
 };
 }
 }

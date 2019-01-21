@@ -17,18 +17,12 @@
  *
  */
 
-#ifndef __XTP_SYMMETRIC_MATRIX__H
-#define	__XTP_SYMMETRIC_MATRIX__H
-
-
+#ifndef VOTCA_XTP_SYMMETRIC_MATRIX_H
+#define	VOTCA_XTP_SYMMETRIC_MATRIX_H
 
 #include <votca/xtp/eigen.h>
 #include <iostream>
 #include <vector>
-
-
-
-
 
 namespace votca { namespace xtp {
 
@@ -87,5 +81,5 @@ private:
  
 }}
 
-#endif	/* AOBASIS_H */
+#endif	// VOTCA_XTP_SYMMETRIC_MATRIX_H
 

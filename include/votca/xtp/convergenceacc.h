@@ -21,7 +21,7 @@
 #define _VOTCA_XTP_CONVERGENCEACC__H
 
 #include <votca/xtp/basisset.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/diis.h>
 #include <votca/xtp/aomatrix.h>
@@ -63,7 +63,7 @@ class ConvergenceAcc{
            _nocclevels=0;
        }
    }
-   void setLogger(ctp::Logger* log){_log=log;}
+   void setLogger(Logger* log){_log=log;}
   
    bool isConverged(){
        if (_totE.size()<2){
@@ -102,7 +102,7 @@ class ConvergenceAcc{
      
     bool             _usedmixing=true;
     double           _diiserror=std::numeric_limits<double>::max();
-    ctp::Logger*     _log;
+    Logger*     _log;
     const AOOverlap* _S;
     
     Eigen::MatrixXd                 Sminusahalf;

@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(gw_full){
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
@@ -138,7 +138,7 @@ mo_energy<<-0.612601,-0.341755,-0.341755,-0.341755, 0.137304,  0.16678,  0.16678
 TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,MOs);
-votca::ctp::Logger log;
+Logger log;
 
 GW::options opt;
 opt.ScaHFX=0;

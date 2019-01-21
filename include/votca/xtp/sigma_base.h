@@ -20,7 +20,6 @@
 #ifndef _VOTCA_XTP_SIGMA_BASE_H
 #define _VOTCA_XTP_SIGMA_BASE_H
 #include <votca/xtp/eigen.h>
-#include <votca/ctp/logger.h>
 
 namespace votca {
 namespace xtp {

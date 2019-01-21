@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -17,44 +17,37 @@
  *
  */
 
-#ifndef __XTP_LOWDIN__H
-#define	__XTP_LOWDIN__H
+#ifndef VOTCA_XTP_POLARSEGMENT_H
+#define VOTCA_XTP_POLARSEGMENT_H
+
+#include <votca/xtp/atomcontainer.h>
+#include <votca/xtp/polarsite.h>
 
 
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+namespace votca {
+    namespace xtp {
 
-
-/**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of mulliken partial charges
-*
-* 
-* 
-*/
-
-
-
-namespace votca { namespace xtp {
-    
-class Lowdin{
+class PolarSegment : public AtomContainer<PolarSite>
+{
 public:
+    PolarSegment(std::string name,int id):AtomContainer<PolarSite>(name,id){};
     
-    Lowdin(){}
-   ~Lowdin(){};
+    void LoadFromMPS(const std::string& filename);
 
-    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,AOBasis &basis, bool _do_transition);
-  
-   
-private:
-   
- 
+    void WriteMPS(const std::string& filename, std::string header) const;
+
+    double CalcTotalQ()const;
+
+    Eigen::Vector3d CalcDipole()const;
+
     
 };
+        
+        
+        
+        
+    }
+}
 
+#endif /* VOTCA_XTP_POLARSEGMENT_H */
 
-
-
-}}
-
-#endif	/* ESPFIT_H */

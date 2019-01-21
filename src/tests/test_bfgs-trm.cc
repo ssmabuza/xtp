@@ -19,7 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/optimiser_costfunction.h>
 #include <votca/xtp/bfgs-trm.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <iostream>
 #include <votca/xtp/adiis_costfunction.h>
 #include <boost/format.hpp>
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
       -0.192873,-0.0631203,-0.0111063,0.0633221,0,
        0,0,0,0,0;
 
-      ctp::Logger log;
+   Logger log;
   
   ADIIS_costfunction a_cost=ADIIS_costfunction(DiF,DiFj);
   BFGSTRM optimizer=BFGSTRM(a_cost);

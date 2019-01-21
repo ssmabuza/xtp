@@ -23,12 +23,13 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/sigma_base.h>
+#include "votca/xtp/logger.h"
 namespace votca {
 namespace xtp {
 
 class GW {     
  public:
-    GW(ctp::Logger &log, TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& vxc,
+    GW(Logger &log, TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& vxc,
        const Eigen::VectorXd& dft_energies):
      _log(log),_Mmn(Mmn),_vxc(vxc),_dft_energies(dft_energies){};
     
@@ -75,7 +76,7 @@ class GW {
     options _opt;
 
     std::unique_ptr<Sigma_base> _sigma=nullptr;
-    ctp::Logger &_log;
+    Logger &_log;
     TCMatrix_gwbse& _Mmn;
     const Eigen::MatrixXd& _vxc;
     const Eigen::VectorXd& _dft_energies;

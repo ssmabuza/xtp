@@ -51,17 +51,17 @@ xyzfile << " Al            .000000     .000000     .000000" << std::endl;
 xyzfile.close();
 
 Orbitals orbitals;
-orbitals.LoadFromXYZ("Al.xyz");
+orbitals.QMAtoms().LoadFromXYZ("Al.xyz");
 BasisSet basis;
 basis.LoadBasisSet("notnormalized.xml");
 AOBasis aobasis;
 aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 
-const AOShell* shell=aobasis.getShell(0);
+const AOShell& shell=aobasis.getShell(0);
 std::vector<double> ref_results={0.1831079647,0.9155398233};
 int i=0;
 bool check_norm=true;
-for(const AOGaussianPrimitive& gaussian:*shell){
+for(const AOGaussianPrimitive& gaussian:shell){
   if(std::abs(ref_results[i]-gaussian.getContraction()[2])>1e-7){
    check_norm=false;
    break;
@@ -72,7 +72,7 @@ for(const AOGaussianPrimitive& gaussian:*shell){
 
 i=0;
 if(!check_norm){
-  for(const AOGaussianPrimitive& gaussian:*shell){
+  for(const AOGaussianPrimitive& gaussian:shell){
   std::cout<<"Ref:"<<ref_results[i]<<" result:"<<gaussian.getContraction()[2]<<std::endl;
    i++;
   }
@@ -149,11 +149,12 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
+
 
   orbitals.MOCoefficients()=Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
   orbitals.MOCoefficients()<<0.996559,-0.223082,-5.74064e-15,1.70342e-15,2.96852e-16,-3.57518e-16,-4.15482e-16,-1.07176e-17,-0.0301914,1.01049e-16,1.89625e-16,-1.73748e-16,2.38718e-16,1.62375e-17,0.102052,9.62277e-16,-6.0957e-16,-1.06426e-15,0.111923,-1.5113e-15,-2.10033e-15,-4.58257e-15,

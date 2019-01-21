@@ -17,13 +17,14 @@
  *
  */
 
-#ifndef __XTP_BASISSET__H
-#define	__XTP_BASISSET__H
+#ifndef VOTCA_XTP_BASISSET_H
+#define	VOTCA_XTP_BASISSET_H
 
 #include <string>
 #include <map>
 #include <vector>
 #include <memory>
+#include <iostream>
 
 
 
@@ -32,9 +33,9 @@ namespace votca { namespace xtp {
     
     
     
-    int FindLmax(const std::string& _type);
+    int FindLmax(const std::string& type);
 
-    int FindLmin(const std::string& _type);
+    int FindLmin(const std::string& type);
 
     int OffsetFuncShell(const std::string& shell_type);
 
@@ -147,6 +148,8 @@ public:
         _shells.push_back(Shell( shellType, shellScale)); 
         return _shells.back();
     }
+
+    int NumOfShells()const{return _shells.size();}
     
     friend std::ostream &operator<<(std::ostream &out, const Element& element);
     
@@ -204,5 +207,6 @@ private:
 
 }}
 
-#endif	/* BASISSET_H */
+#endif	// VOTCA_XTP_BASISSET_H
+
 
