@@ -43,25 +43,19 @@ public:
 
    std::string getPackageName() { return "cpmd"; }
 
-   void Initialize( tools::Property &options );
+   void Initialize(tools::Property &options );
 
-   /* Writes CPMD input file with coordinates of all atoms
-    */
-   bool WriteInputFile( Orbitals& orbitals);
+   bool WriteInputFile(const Orbitals& orbitals);
    
-   
-
    bool Run();
 
    void CleanUp();
    
-   bool CheckLogFile();
+   bool ParseLogFile(Orbitals& orbitals );
 
-   bool ParseLogFile( Orbitals& orbitals );
-
-   bool ParseOrbitalsFile( Orbitals& orbitals ){return false;};
+   bool ParseOrbitalsFile(Orbitals& orbitals ){return false;};
    
-   std::string getScratchDir( ) { return _scratch_dir; }   
+   std::string getScratchDir() { return _scratch_dir; }   
    
    bool loadMatrices(Orbitals * _orbitals);
    
@@ -98,7 +92,7 @@ private:
     int NumbfQC( std::string _shell_type);
     int NumbfGW( std::string _shell_type);
     int NumbfQC_cart( std::string _shell_type);
-    void WriteBasisSet(std::vector<ctp::Segment* > segments, ofstream &_com_file);
+    void WriteBasisSet(const Orbitals& orbitals, std::ofstream &_com_file);
     
     int ConvAtomIndex_CPMD2VOTCA(int indx){
         return(CPMD2VOTCA_map[indx]);
@@ -137,12 +131,14 @@ private:
     std::string _wfOpt_log_file_name;
     std::string _custom_CPMD_controlls; //string to be added into the &CPMD section of the input file(s)
     tools::vec _box;        //box dimensions in Bohr
+    int _F_int_size;        //Fortran int size CPMD was compiled with
+    int _F_real_size;       //Fortran real size CPMD was compiled with
     
     
     std::map<std::string,std::string> _ppFileNames;   //pseudopotential file names indexed by element name
     std::map<std::string,std::string> _ppLData;       //LMAX, LOC and SKIP data for pseudopotential file
     std::map<std::string,int> _nAtomsOfElement;       //number of atoms of element indexed by element name
-    list<std::string> _elements;                      //keeps track of element names and their order in CPMD
+    std::list<std::string> _elements;                      //keeps track of element names and their order in CPMD
     
     int _NSP;                    
     double *_ZV;             //core charge
@@ -150,10 +146,11 @@ private:
     int *VOTCA2CPMD_map, *CPMD2VOTCA_map;
     std::map<int,std::string> CPMD2TYPE_map;
     
-    
-    ub::symmetric_matrix<double>            _overlap; //overlap matrix, from OVERLAP file
-    ub::symmetric_matrix<double>            _density; //density matrix, calculated here
-    ub::matrix<double>                      _coefs;   //coefficients of MOs expressed in basis set, from WFNCOEF
+/*
+ *  Eigen::MatrixXd& _overlap; //overlap matrix, from OVERLAP file
+ *  Eigen::MatrixXd& _density; //density matrix, calculated here
+ *  Eigen::MatrixXd& _coefs;   //coefficients of MOs expressed in basis set, from WFNCOEF
+ */    
     
 };
 
