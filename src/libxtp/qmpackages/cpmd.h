@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -38,30 +38,30 @@ namespace votca { namespace xtp {
 */
 class Cpmd : public QMPackage
 {
+// public functions
 public:   
 
    std::string getPackageName() { return "cpmd"; }
 
-   void Initialize( Property *options );
+   void Initialize( tools::Property &options );
 
    /* Writes CPMD input file with coordinates of all atoms
     */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<ctp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( Orbitals& orbitals);
    
-   bool WriteShellScript();
+   
 
-   bool Run(Orbitals* _orbitals = NULL );
+   bool Run();
 
    void CleanUp();
    
    bool CheckLogFile();
 
-   bool ParseLogFile( Orbitals* _orbitals );
+   bool ParseLogFile( Orbitals& orbitals );
 
-   bool ParseOrbitalsFile( Orbitals* _orbitals ){return true;};
+   bool ParseOrbitalsFile( Orbitals& orbitals ){return false;};
    
-   bool setMultipoleBackground( std::vector<ctp::PolarSeg*> multipoles){ return true; };
-   
+   std::string getScratchDir( ) { return _scratch_dir; }   
    
    bool loadMatrices(Orbitals * _orbitals);
    
@@ -86,9 +86,36 @@ public:
        if(CPMD2VOTCA_map!=NULL){ delete[] CPMD2VOTCA_map;}
    };
    
-private:  
+// private functions
+private:
+    bool WriteShellScript();
+    bool CheckLogFile();
+    
+    int NumberOfElectrons( std::string _line ); 
+    int BasisSetSize( std::string _line ); 
+    int EnergiesFromLog( std::string _line, std::ifstream inputfile ); 
+    std::string FortranFormat( const double &number );
+    int NumbfQC( std::string _shell_type);
+    int NumbfGW( std::string _shell_type);
+    int NumbfQC_cart( std::string _shell_type);
+    void WriteBasisSet(std::vector<ctp::Segment* > segments, ofstream &_com_file);
+    
+    int ConvAtomIndex_CPMD2VOTCA(int indx){
+        return(CPMD2VOTCA_map[indx]);
+    }
+    
+    int ConvAtomIndex_VOTCA2CPMD(int indx){
+        return(VOTCA2CPMD_map[indx]);
+    }
 
-    std::string                              _cleanup;
+// private variables
+private:
+
+    std::string _xyz_file_name;
+    std::string _shell_file_name;
+    std::string _chk_file_name;
+    std::string _scratch_dir;
+    std::string _cleanup;
 
     
     
@@ -127,26 +154,6 @@ private:
     ub::symmetric_matrix<double>            _overlap; //overlap matrix, from OVERLAP file
     ub::symmetric_matrix<double>            _density; //density matrix, calculated here
     ub::matrix<double>                      _coefs;   //coefficients of MOs expressed in basis set, from WFNCOEF
-    
-
-    int NumberOfElectrons( std::string _line ); 
-    int BasisSetSize( std::string _line ); 
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile ); 
-    std::string FortranFormat( const double &number );
-    int NumbfQC( std::string _shell_type);
-    int NumbfGW( std::string _shell_type);
-    int NumbfQC_cart( std::string _shell_type);
-    void WriteBasisSet(std::vector<ctp::Segment* > segments, ofstream &_com_file);
-    
-    int ConvAtomIndex_CPMD2VOTCA(int indx){
-        return(CPMD2VOTCA_map[indx]);
-    }
-    
-    int ConvAtomIndex_VOTCA2CPMD(int indx){
-        return(VOTCA2CPMD_map[indx]);
-    }
-
-    
     
 };
 

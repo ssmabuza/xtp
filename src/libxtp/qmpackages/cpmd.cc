@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -40,24 +40,24 @@
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
+        //using namespace std;
 
-        void Cpmd::Initialize(Property *options) {
+        void Cpmd::Initialize(tools::Property &options) {
 
-            // NWChem file names
+            // CPMD file names
             string fileName = "system";
-
             _xyz_file_name = fileName + ".xyz";
             _input_file_name = fileName + ".inp";
             _log_file_name = fileName + ".log";
             _orb_file_name = "WFNCOEF" ;
 
-            string key = "package";
-            string _name = options->get(key+".name").as<string> ();
+            
+            std::string key = "package";
+            std::string _name = options.get(key + ".name").as<std::string> ();
 
-            if ( _name != "cpmd" ) {
+            if (_name != "cpmd") {
                 cerr << "Tried to use " << _name << " package. ";
-                throw std::runtime_error( "Wrong options file");
+                throw std::runtime_error("Wrong options file");
             }
 
             _executable =       options->get(key + ".executable").as<string> ();
