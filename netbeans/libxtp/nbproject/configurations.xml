@@ -3840,6 +3840,7 @@
             <pElem>../../../xtp/include</pElem>
             <pElem>/usr/include/libxml2</pElem>
             <pElem>/sw/linux/intel/XE13u2/mkl/include</pElem>
+            <pElem>${VOTCASHARE}/../../include</pElem>
           </incDir>
         </ccTool>
         <archiverTool>
