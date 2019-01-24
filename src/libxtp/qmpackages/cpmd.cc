@@ -235,13 +235,7 @@ namespace votca {
         }
 
         bool Cpmd::WriteInputFile(const Orbitals& orbitals){
-
-//            std::vector< ctp::Atom* > _atoms;
-//            std::vector< ctp::Atom* > ::iterator ait;
-//            std::vector< ctp::Segment* >::iterator sit;
             
-            std::string temp_suffix = "/id";
-
             std::ofstream _com_file;
 
             std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
@@ -347,94 +341,85 @@ namespace votca {
             
             //atoms
             _com_file << "\n&ATOMS\n";
-                //find how many atoms of each element there are
-            //list<std::string> elements;
-            int numAtoms=0;
-            if(_elements.empty()){ //we have not tabulated # atoms of each element yet
-                //(this is the first time this function is called)
-                for (sit = segments.begin(); sit != segments.end(); ++sit) {
-
-                    _atoms = (*sit)-> Atoms();
-
-                    for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
-
-                        std::string element_name = (*ait)->getElement();
-                        std::list<std::string>::iterator ite;
-                        ite = find(_elements.begin(), _elements.end(), element_name);
-                        if (ite == _elements.end()) {            //this is the first atom of this element encountered
-                            _elements.push_back(element_name);
-                            _nAtomsOfElement[element_name]=1;
-                        }
-                        else
-                        {
-                            _nAtomsOfElement[element_name]++;
-                        }
-                        numAtoms++;
+            //find how many atoms of each element there are
+            const QMMolecule& qmatoms = orbitals.QMAtoms();     
+            std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
+            int numAtoms = qmatoms.size();
+            
+            //find number of atoms of each element
+            _nAtomsOfElement.clear();
+            for(const std::string& element_name:UniqueElements){
+                _nAtomsOfElement.insert(std::make_pair(element_name, 0));
+                for(const QMAtom& a:qmatoms){
+                    if(a.getElement() == element_name){
+                        _nAtomsOfElement[element_name] += 1;
                     }
                 }
             }
-                //now loop over elements and store all atoms of that element
+            
+            
+            //now loop over elements and store all atoms of that element
             bool atomOrderMapSet = (VOTCA2CPMD_map!=NULL && CPMD2VOTCA_map!=NULL);
             int Vind=0, Cind=0; //atom indexes in VOTCA and CPMD
             if(!atomOrderMapSet){
                 VOTCA2CPMD_map=new int[numAtoms];
                 CPMD2VOTCA_map=new int[numAtoms];
             }
-            std::list<std::string>::iterator ite;
-            for (ite = _elements.begin(); ite != _elements.end(); ite++) {
-                if(_ppFileNames.find(*ite)==_ppFileNames.end()) {
-                    std::cerr << "Error: Element "<<(*ite)<<" has no pseudopotential specified in CPMD options file.\n" << std::flush;
+
+            for (const std::string& element_name:UniqueElements) {
+                if(_ppFileNames.find(element_name)==_ppFileNames.end()) {
+                    XTP_LOG(logERROR, *_pLog) << "Error: Element "<<element_name<<
+                            " has no pseudopotential specified in CPMD options file." << std::flush;
                     throw std::runtime_error("Encountered element with no pseudopotential.\n");
                 }
-                else{
-                    _com_file << "*" << _ppFileNames[(*ite)] << std::endl; //store name of the pseudopotential file and it's read options
-                    if(_ppLData.find(*ite)==_ppLData.end()) {
-                        std::cerr << "Warning: Element "<<(*ite)<<" has no angular momentum data (<l></l>) specified in CPMD options file.\n\tAttempting to read it from basis set. This may produce errors.\n" << std::flush;
+                else{ //store name of the pseudopotential file and it's read options
+                    _com_file << "*" << _ppFileNames[element_name] << std::endl; 
+                    if(_ppLData.find(element_name)==_ppLData.end()) {
+                        XTP_LOG(logWARNING, *_pLog) << "Element "<<element_name<<
+                                " has no angular momentum data (<l></l>) specified in CPMD options file. "<<
+                                "Attempting to read it from basis set. This may produce errors." << std::flush;
                         if(_basisset_name.empty()){
-                            std::cerr << "Error: Basis set file not specified.\n" << std::flush;
-                            throw std::runtime_error("Encountered element with no angular momentum data.\n");
+                            XTP_LOG(logERROR, *_pLog) << "Error: Basis set file not specified." << std::flush;
+                            throw std::runtime_error("Encountered element with no angular momentum data and no basis set is specified.\n");
                         }
                         else{
                             BasisSet _bs;
                             _bs.LoadBasisSet(_basisset_name);
                             int Lmax = 0;
                             //find Lmax by checking all shells of the element
-                            Element* el=_bs.getElement(*ite);
-                            for (Element::ShellIterator its = el->firstShell(); its != el->lastShell(); its++) {
-                                        int Ls=(*its)->getLmax();
-                                        if(Lmax<Ls) Lmax=Ls;
+                            const Element& element = _bs.getElement(element_name);
+                            for (const Shell& shell:element) {
+                                int Ls = shell.getLmax();
+                                if(Lmax<Ls) Lmax = Ls;
                             }
                             _com_file << "   "<<Lmax<<" "<<Lmax<<" "<<Lmax<< std::endl; //LMAX LOC SKIP
                         }
                     }
                     else{
-                        _com_file << "   "<<_ppLData[(*ite)]<< std::endl; //LMAX LOC SKIP
+                        _com_file << "   "<<_ppLData[element_name]<< std::endl; //LMAX LOC SKIP
                     }
-                    _com_file << "   "<< _nAtomsOfElement[(*ite)] <<std::endl;  //# atoms of element
+                    _com_file << "   "<< _nAtomsOfElement[element_name] <<std::endl;  //# atoms of element
                     
-                    //store atomic positions
-                    for (sit = segments.begin(); sit != segments.end(); ++sit) {
+                    //store atomic positions of atoms of this element
+                    for(const QMAtom& a:qmatoms){
                         Vind=0;
-                        _atoms = (*sit)-> Atoms();
-                        for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
-                            if((*ait)->getElement().compare(*ite)==0){     //this element
-                                vec pos = (*ait)->getQMPos();
-                                _com_file << "   ";
-                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << conv::nm2bohr*pos.getX() << "   ";
-                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << conv::nm2bohr*pos.getY() << "   ";
-                                _com_file << setw(12) << setiosflags(ios::fixed) << setprecision(5) << conv::nm2bohr*pos.getZ() << "   ";
-                                _com_file << std::endl;
-                                
-                                //cache the mapping between VOTCA and CPMD atomic ordering
-                                if(!atomOrderMapSet){
-                                    VOTCA2CPMD_map[Vind]=Cind;
-                                    CPMD2VOTCA_map[Cind]=Vind;
-                                    CPMD2TYPE_map[Cind]=(*ite);
-                                }
-                                Cind++;
+                        if(a.getElement() == element_name){ //this element
+                            Eigen::Vector3d pos = a.getPos(); //in Bohr
+                            _com_file << "   ";
+                            _com_file << std::setw(12) << std::setiosflags(std::ios::fixed) << std::setprecision(5) << pos.x() << "   ";
+                            _com_file << std::setw(12) << std::setiosflags(std::ios::fixed) << std::setprecision(5) << pos.y() << "   ";
+                            _com_file << std::setw(12) << std::setiosflags(std::ios::fixed) << std::setprecision(5) << pos.z() << "   ";
+                            _com_file << std::endl;
+
+                            //cache the mapping between VOTCA and CPMD atomic ordering
+                            if(!atomOrderMapSet){
+                                VOTCA2CPMD_map[Vind]=Cind;
+                                CPMD2VOTCA_map[Cind]=Vind;
+                                CPMD2TYPE_map[Cind]=(element_name);
                             }
-                            Vind++;
+                            Cind++;
                         }
+                        Vind++;
                     }
                 }
             }
@@ -470,7 +455,7 @@ namespace votca {
         /**
          * Writes the basis set files to disk in a format that CPMD can understand
          */
-        void Cpmd::WriteBasisSet(const Orbitals& orbitals, ofstream &_com_file) {
+        void Cpmd::WriteBasisSet(const Orbitals& orbitals, std::ofstream &_com_file) {
             
             const QMMolecule& qmatoms = orbitals.QMAtoms();            
             std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
@@ -481,18 +466,18 @@ namespace votca {
             for (const std::string& element_name:UniqueElements) {
                 XTP_LOG(logDEBUG, *_pLog) << "CPMD: writing Gaussian basis for element "<< element_name << std::flush;
                
-                const Element& element = bs.getElement(element_name);
+                const Element& element = _bs.getElement(element_name);
                 
                 std::string _short_el_file_name = element_name + "_" + _basisset_name + ".basis";
                 std::string _el_file_name = _run_dir + "/" + _short_el_file_name;
 
 
                 //write the element to the input file
-                _com_file << "*" << _short_el_file_name << " " << std::distance(element->firstShell(), element->lastShell()) << " GAUSSIAN"<<std::endl;
+                _com_file << "*" << _short_el_file_name << " " << element.NumOfShells() << " GAUSSIAN"<<std::endl;
                 _com_file << "   ";
                 
                 //create the .basis file
-                ofstream _el_file;
+                std::ofstream _el_file;
                 _el_file.open(_el_file_name.c_str());
 
                 //comment
@@ -510,7 +495,7 @@ namespace votca {
                 //sort shells by L
                 for (int L=0; L <= Lmax; L++)
                 {
-                    std::vector< std::reference_wrapper<Shell> > Lshells;
+                    std::vector< std::reference_wrapper<const Shell> > Lshells;
                     int ndecays=0;
                     for (const Shell& shell:element) {
                         int Ls = shell.getLmax();
@@ -537,12 +522,12 @@ namespace votca {
                                 _el_file << std::endl;
 
                                 //decays
-                                ios::fmtflags old_settings = _el_file.flags();
+                                std::ios::fmtflags old_settings = _el_file.flags();
                                 _el_file << std::scientific << std::setprecision(6);
                                 _el_file << "  ";
-                                for (Shell& s:Lshells)
+                                for (const Shell& s:Lshells)
                                 {
-                                    for (GaussianPrimitive& g:s) {
+                                    for (const GaussianPrimitive& g:s) {
                                         _el_file << g._decay << "\t";
                                     }
                                 }
@@ -550,7 +535,7 @@ namespace votca {
 
                                 //coefficients (scale*contraction)
                                 int gs=0; //number of decays already handled
-                                for (Shell& s:Lshells)
+                                for (const Shell& s:Lshells)
                                 {
                                     if(s.getSize()!=0) //there are gaussians in this shell
                                     {
@@ -562,11 +547,11 @@ namespace votca {
                                             _el_file << 0.0 << "\t";
                                         }
                                         //output coefficients for this shell's gaussians
-                                        for (GaussianPrimitive& g:s) {
+                                        for (const GaussianPrimitive& g:s) {
                                             _el_file << s.getScale() * g._contraction[L] << "\t";
                                             gi++;
                                         }
-                                        gs+=shell->getSize();
+                                        gs+=shell.getSize();
                                         //output zeros till the end of decays
                                         for(;gi<ndecays; gi++)
                                         {
@@ -1131,7 +1116,7 @@ namespace votca {
             
             //check if OVERLAP exists
             _full_name = (arg_path / _run_dir / "OVERLAP").c_str();
-            ifstream ov_file(_full_name.c_str());
+            std::ifstream ov_file(_full_name.c_str());
             if(ov_file.fail())
             {
                 XTP_LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << std::endl << std::flush;
@@ -1194,7 +1179,7 @@ namespace votca {
         std::string Cpmd::FortranFormat(const double &number) {
             std::stringstream _ssnumber;
             if (number >= 0) _ssnumber << " ";
-            _ssnumber << setiosflags(ios::fixed) << setprecision(8) << std::scientific << number;
+            _ssnumber << std::setiosflags(std::ios::fixed) << std::setprecision(8) << std::scientific << number;
             std::string _snumber = _ssnumber.str();
             boost::replace_first(_snumber, "e", "D");
             return _snumber;
