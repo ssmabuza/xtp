@@ -70,7 +70,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     }
 
     // NWChem has some strange minus in d-functions
-    if (start == "nwchem" || start == "orca") {
+    if (start == "nwchem" || start == "orca" || start == "cpmd") {
         std::vector<int> multiplier = getMultiplierVector(start, target);
         // and reorder rows of _orbitals->_mo_coefficients() accordingly
         MultiplyMOs(v, multiplier);
@@ -377,6 +377,11 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(cur_pos + 3);
               order.push_back(cur_pos + 2);
               order.push_back(cur_pos + 1);
+            } else if(start == "cpmd"){ 
+                //cpmd order is -px -pz -py
+              order.push_back(cur_pos + 3 );
+              order.push_back(cur_pos + 1 );
+              order.push_back(cur_pos + 2 );
             } else if (start == "votca") {//for usage with old orb files
                  //old votca x,y,z Y1,1 Y1,-1 Y1,0
               order.push_back(cur_pos + 3);
@@ -403,6 +408,13 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
               order.push_back(cur_pos + 1);
               order.push_back(cur_pos + 3);
               order.push_back(cur_pos + 5);
+            }else if ( start == "cpmd") {
+              // cpmd order is dxy dxz d3z2-r2 dyz dx2-y2
+              order.push_back(cur_pos + 4 ); 
+              order.push_back(cur_pos + 3 );
+              order.push_back(cur_pos + 1 );
+              order.push_back(cur_pos + 2 ); 
+              order.push_back(cur_pos + 5 ); 
             } else if (start == "votca") { //for usage with old orb files
               order.push_back(cur_pos + 3);
               order.push_back(cur_pos + 2);
