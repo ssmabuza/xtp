@@ -57,7 +57,7 @@ public:
    
    std::string getScratchDir() { return _scratch_dir; }   
    
-   bool loadMatrices(Orbitals * _orbitals);
+   bool loadMatrices(Orbitals& _orbitals);
    
    Cpmd(){
        _ZV=NULL;
@@ -109,6 +109,7 @@ private:
     std::string _shell_file_name;
     std::string _chk_file_name;
     std::string _scratch_dir;
+    std::string _input_vxc_file_name;
     std::string _cleanup;
 
     
@@ -138,7 +139,7 @@ private:
     std::map<std::string,std::string> _ppFileNames;   //pseudopotential file names indexed by element name
     std::map<std::string,std::string> _ppLData;       //LMAX, LOC and SKIP data for pseudopotential file
     std::map<std::string,int> _nAtomsOfElement;       //number of atoms of element indexed by element name
-    std::list<std::string> _elements;                      //keeps track of element names and their order in CPMD
+    std::vector<std::string> _elements;                      //keeps track of element names and their order in CPMD
     
     int _NSP;                    
     double *_ZV;             //core charge

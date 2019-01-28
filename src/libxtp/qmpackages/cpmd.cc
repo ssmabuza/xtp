@@ -18,7 +18,6 @@
  */
 
 #include "cpmd.h"
-#include <votca/ctp/segment.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
@@ -123,7 +122,6 @@ namespace votca {
             if (options.exists(key + ".functional")) {
                 if (!(options.exists(key + ".functional"))) throw std::runtime_error("Functional name missing");
                 _functional = options.get(key + ".functional.name").as<std::string> ();
-                
                 std::list<tools::Property*>::iterator pit;
                 std::list<tools::Property *> props = options.Select(key + ".functional.pseudopotentials.*");
                 for (pit = props.begin(); pit != props.end(); ++pit)
@@ -140,6 +138,20 @@ namespace votca {
                 
             }
             else throw std::runtime_error("No functional and pseudopotentials specified");
+            
+            
+            // check if ecp is specified
+            if (!options.exists(key + ".ecp")) {
+                _ecp_name = "corelevels.xml";
+                XTP_LOG(logDEBUG, *_pLog) << "Effective core potential not specified."
+                        << " Setting to "<< _ecp_name
+                        << " as those should be compatible with CPMD."
+                        << " If they aren't, construct a new xml file from the _ZV vector"
+                        << " read from WFNCOEF output file of CPMD."<< std::flush;
+            }else{    
+                _ecp_name = options.get(key + ".ecp").as<std::string> ();
+            }
+            
             
             //symmetry
             _symmetry=0;
@@ -225,6 +237,12 @@ namespace votca {
 
             if(_getMat) _popAnalysis=true;
             if(_popAnalysis) _projectWF=true;
+            
+            if (options.exists(key + ".outputVxc")) {
+                _output_Vxc = options.get(key + ".outputVxc").as<bool> ();
+                XTP_LOG(logERROR, *_pLog) << "Error: CPMD interface currently does not support Vxc." << std::flush;
+                    throw std::runtime_error("Vxc not supported.\n");
+            } else _output_Vxc = false;
 
             if(_projectWF && _optWF){
                 XTP_LOG(logDEBUG, *_pLog) << "CPMD: Splitting run into two steps." << std::endl << std::flush;
@@ -246,7 +264,7 @@ namespace votca {
                 if (pointpos!=std::string::npos){
                     _wfOpt_input_file_name=_input_file_name.substr(0,pointpos) + "_wfOpt" + _input_file_name.substr(pointpos);
                 }else{
-                _wfOpt_input_file_name=_input_file_name + "_wfOpt";
+                    _wfOpt_input_file_name=_input_file_name + "_wfOpt";
                 }
                 _com_file_name_full= _run_dir + "/" + _wfOpt_input_file_name;
 
@@ -344,6 +362,7 @@ namespace votca {
             //find how many atoms of each element there are
             const QMMolecule& qmatoms = orbitals.QMAtoms();     
             std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
+            _elements = UniqueElements; //needed in reading log file
             int numAtoms = qmatoms.size();
             
             //find number of atoms of each element
@@ -577,7 +596,7 @@ namespace votca {
         /**
          * Runs the CPMD job.
          */
-        bool Cpmd::Run(Orbitals* _orbitals) {
+        bool Cpmd::Run() {
             XTP_LOG(logDEBUG, *_pLog) << "CPMD: Run()" << std::flush;
             if(_optWF && _projectWF){ //CPMD needs to run twice, once for _optWF and once for _projectWF
                 //_optWF run:
@@ -593,7 +612,7 @@ namespace votca {
                     
                     check = std::system("mv LocalError*.log LocalError_wfOpt*.log");
                     if (check==0){
-    	                CTP_LOG(ctp::logWARNING, *_pLog) << "CPMD produced an error log. Moving it to LocalError_wfOpt*.log" << std::flush;
+    	                XTP_LOG(logWARNING, *_pLog) << "CPMD produced an error log. Moving it to LocalError_wfOpt*.log" << std::flush;
     	            }
 
                     if (CheckLogFile()) {
@@ -645,38 +664,54 @@ namespace votca {
          * Cleans up after the CPMD job.
          */
         void Cpmd::CleanUp() {
-
+            
             // cleaning up the generated files
             if (_cleanup.size() != 0) {
 
                 XTP_LOG(logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << std::flush;
-                Tokenizer tok_cleanup(_cleanup, ", ");
-                std::vector <std::string> _cleanup_info;
-                tok_cleanup.ToVector(_cleanup_info);
+                tools::Tokenizer tok_cleanup(_cleanup, ", ");
+                std::vector <std::string> cleanup_info;
+                tok_cleanup.ToVector(cleanup_info);
+                for (const std::string& substring:cleanup_info) {
 
-                std::vector<std::string> ::iterator it;
-
-                for (it = _cleanup_info.begin(); it != _cleanup_info.end(); ++it) {
-
-                    if (*it == "inp") {
+                    if (substring == "inp") {
                         std::string file_name = _run_dir + "/" + _input_file_name;
                         remove(file_name.c_str());
                         if(_projectWF && _optWF)
                         {
-                            remove(_wfOpt_input_file_name.c_str()); //also clean up the WF opt input
+                            std::string file_name = _run_dir + "/" + _wfOpt_input_file_name;
+                            remove(file_name.c_str()); //also clean up the WF opt input
                         }
+//                        if (_output_Vxc) {
+//                            std::string file_name = _run_dir + "/" + _input_vxc_file_name;
+//                            remove(file_name.c_str());
+//                        }
                     }
 
-                    if (*it == "log") {
+                    if (substring == "sh") {
+                        std::string file_name = _run_dir + "/" + _shell_file_name;
+                        remove(file_name.c_str());
+                    }
+
+                    if (substring == "log") {
                         std::string file_name = _run_dir + "/" + _log_file_name;
                         remove(file_name.c_str());
                         if(_projectWF && _optWF)
                         {
                             remove(_wfOpt_log_file_name.c_str()); //also clean up the WF opt input
                         }
+//                        if (_output_Vxc) {
+//                            size_t lastdot = _log_file_name.find_last_of(".");
+//                            if (lastdot == std::string::npos) {
+//                                std::cerr << std::endl;
+//                                std::cerr << "Could not remove Vxc log file" << std::flush;
+//                            }
+//                            std::string file_name2 = file_name.substr(0, lastdot) + "-2.log";
+//                            remove(file_name2.c_str());
+//                        }
                     }
 
-                    if (*it == "chk") {
+                    if (substring == "chk") {
                         std::string file_name = _run_dir + "/" + "LATEST";
                         remove(file_name.c_str());
                         //if user sets custom execution options for CPMD,
@@ -685,10 +720,8 @@ namespace votca {
                         remove(file_name.c_str());
                     }
 
-                    if (*it == "fort.7") {
-                        std::string file_name = _run_dir + "/" + *it;
-                        remove(file_name.c_str());
-                        file_name = _run_dir + "/" + "OVERLAP";
+                    if (substring == "matrices") {
+                        std::string file_name = _run_dir + "/" + "OVERLAP";
                         remove(file_name.c_str());
                         file_name = _run_dir + "/" + "SPINDEN";
                         remove(file_name.c_str());
@@ -696,19 +729,21 @@ namespace votca {
                         remove(file_name.c_str());
                         file_name = _run_dir + "/" + "CHOUT";
                         remove(file_name.c_str());
+//                        if (_output_Vxc) {
+//                            std::string file_name = _run_dir + "/" + "fort.24";
+//                            remove(file_name.c_str());
+//                        }
                     }
 
-                    if (*it == "basis") {
+                    if (substring == "basis" && _write_basis_set) {
                         std::vector<std::string> fileswithfileending;
                         boost::filesystem::recursive_directory_iterator fit(_run_dir);
                         boost::filesystem::recursive_directory_iterator endit;
-
                         while (fit != endit) {
                             if (boost::filesystem::is_regular_file(* fit) &&
-                                    fit->path().extension() == *it)
+                                    fit->path().extension() == substring)
                             {
-                                fileswithfileending.push_back(
-                                    fit->path().filename().string());
+                                fileswithfileending.push_back(fit->path().filename().string());
                             }
                             ++fit;
                         }
@@ -718,12 +753,13 @@ namespace votca {
                         }
                     }
                     
-                    if (*it == "density") {
+                                        
+                    if (substring == "density") {
                         std::string file_name = _run_dir + "/" + "DENSITY";
                         remove(file_name.c_str());
                     }
                     
-                    if (*it == "elpot") {
+                    if (substring == "elpot") {
                         std::string file_name = _run_dir + "/" + "ELPOT";
                         remove(file_name.c_str());
                     }
@@ -731,7 +767,6 @@ namespace votca {
                 }
             }
             return;
-
         }
 
 
@@ -745,7 +780,7 @@ namespace votca {
             if(_optWF && _projectWF){ //CPMD needs to run twice; this is the _optWF run
                 _full_name = (arg_path / _run_dir / _wfOpt_log_file_name).c_str();
             }
-            ifstream _input_file(_full_name.c_str());
+            std::ifstream _input_file(_full_name.c_str());
 
             if (_input_file.fail()) {
                 XTP_LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << std::endl << std::flush;
@@ -767,7 +802,7 @@ namespace votca {
                 XTP_LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is incomplete."<< std::endl << std::flush;
                 return false;
             } else {
-                CTP_LOG(ctp::logDEBUG,*_pLog) << "CPMD LOG is complete." <<std::endl << std::flush;
+                XTP_LOG(logDEBUG,*_pLog) << "CPMD LOG is complete." <<std::endl << std::flush;
                 return true;
             }
         }
@@ -775,10 +810,10 @@ namespace votca {
         /**
          * Parses the CPMD Log file and stores data in the Orbitals object
          */
-        bool Cpmd::ParseLogFile(Orbitals * _orbitals) {
+        bool Cpmd::ParseLogFile(Orbitals& orbitals) {
             std::string _line;
             std::vector<std::string> results;
-            std::vector<tools::vec> positions;
+            std::vector<Eigen::Vector3d> positions;
             
             XTP_LOG(logDEBUG, *_pLog) << "CPMD: parsing " << _log_file_name << std::flush;
             
@@ -789,9 +824,12 @@ namespace votca {
             if (!CheckLogFile()) return false;
 
             // save qmpackage name
-            _orbitals->setQMpackage("cpmd");
+            orbitals.setQMpackage("cpmd");
+            orbitals.setDFTbasisName(_basisset_name);
+            orbitals.setECPName(_ecp_name);
             
-            ifstream _input_file(_log_file_name_full.c_str());
+            
+            std::ifstream _input_file(_log_file_name_full.c_str());
             while (_input_file) {
                 
                 getline(_input_file, _line);
@@ -804,10 +842,11 @@ namespace votca {
                 std::string::size_type electrons_pos = _line.find("alpha electrons");
                 if (electrons_pos != std::string::npos) {
                     boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    int _number_of_electrons = (int) boost::lexical_cast<double>(results.back());
-                    _orbitals->setNumberOfElectrons(_number_of_electrons);
-                    XTP_LOG(logDEBUG, *_pLog) << "Alpha electrons: " << _number_of_electrons << std::flush;
+                    int number_of_electrons = (int) boost::lexical_cast<double>(results.back());
+                    orbitals.setNumberOfAlphaElectrons(number_of_electrons);
+                    XTP_LOG(logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << std::flush;
                 }
+                //TODO: beta electrons can be added later. Right now they are disabled by checking for the LSD keyword being passed to CPMD in custom options.
                 
                 /*
                  * atomic positions
@@ -836,8 +875,8 @@ namespace votca {
                                 v[k] = _box[k]+v[k];
                             }
                         }
-                        v=v*tools::conv::bohr2ang;
-                        positions.push_back(v); //store positions and core charges (later))
+//                        v=v*tools::conv::bohr2ang;
+                        positions.push_back(Eigen::Vector3d(v.getX(),v.getY(),v.getZ())); //store positions in Bohr
                     }while(true);
                 }
                 
@@ -853,7 +892,10 @@ namespace votca {
                     boost::trim(_line);
                     boost::algorithm::split(results, _line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     int nelectrons = (int) (boost::lexical_cast<double>(results[3]));
-                    _orbitals->setNumberOfLevels(nelectrons/2, nstates-(nelectrons/2));
+//                    orbitals.setNumberOfLevels(nelectrons/2, nstates-(nelectrons/2));
+                    orbitals.setNumberOfOccupiedLevels(nelectrons/2);
+                    XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << nelectrons/2 << std::flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Unoccupied levels: " << nstates-(nelectrons/2) << std::flush;
                 }
                 
 
@@ -872,109 +914,61 @@ namespace votca {
             }
             
             //store atoms to Orbitals in VOTCA's order
+            bool has_atoms = orbitals.hasQMAtoms();
             for(unsigned int v=0; v<positions.size(); v++){
                 int c = ConvAtomIndex_VOTCA2CPMD(v);
-                _orbitals->AddAtom(CPMD2TYPE_map[c], positions[c].getX(), positions[c].getY(), positions[c].getZ(), 0); //core charges don't matter, VOTCA computes them on its own
+                if (has_atoms == false) {
+                    //orbitals should not expose its atoms like this. Need a getter/setter, like we had last year.
+                    orbitals.QMAtoms().push_back(QMAtom(v,CPMD2TYPE_map[c], positions[c]));
+                } else {
+                    QMAtom& pAtom = orbitals.QMAtoms().at(v);
+                    pAtom.setPos(positions[c]);
+                }
             }
             
             if(_projectWF){
                 //MO coefficient and overlap matrices
-                if(!loadMatrices(_orbitals)) return false;
+                if(!loadMatrices(orbitals)) return false;
 
-                //atom info
-                if(!(_orbitals->hasQMAtoms())){ //no atoms defined for the orbitals
-                    //lets fill them in, in CPMD's order
+                //Check sanity of ECPs
+                if(orbitals.hasQMAtoms()){
+                    //lets test in CPMD's order
 
                     //iterate over elements
-                    std::list<std::string>::iterator ite;
-                    int i=0;
-                    for (ite = _elements.begin(); ite != _elements.end(); ite++, i++) {
-                        for(int a=0; a<_NA[i]; a++){
-                            _orbitals->AddAtom(*ite, 0, 0, 0, _ZV[i]); //store core charge in the atomic charge field
+                    int i=0; //element index
+                    int c=0; //atom index in CPMD
+                    for(const std::string& element_name:_elements){
+                        for(int a=0; a<_NA[i]; a++){ //check each atom
+                            int v = ConvAtomIndex_CPMD2VOTCA(c);
+                            QMAtom& pAtom = orbitals.QMAtoms().at(v);
+                            if(pAtom.getNuccharge() != _ZV[i]){
+                                XTP_LOG(logERROR, *_pLog) << "CPMD: ECP core charge mismatch for element "
+                                        << element_name << ". CPMD uses a nuclear charge of " << _ZV[i]
+                                        << "and your ECP file (" << _ecp_name << ") uses "
+                                        << pAtom.getNuccharge()
+                                        <<". Adjust your ECP file!" << std::flush;
+                            }
+                            c++;
                         }
+                        i++;
                     }
                 }
             }
             
-            
-            //basis set
-            if(_orbitals->hasDFTbasis()){
-                if(_orbitals->getDFTbasis().compare(_basisset_name)!=0){
-                    XTP_LOG(logERROR, *_pLog) << "CPMD: _orbitals already has a basis set and it does not match the basis set CPMD was initialized with." << std::flush;
-                    throw std::runtime_error("Basis set mismatch");
-                    return false;
-                }
-            }
-            else{
-                _orbitals->setDFTbasis(_basisset_name);
-            }
-            
             //fix order for version 5 of .orb files
-            ReorderOutput(_orbitals);
-
-
-#ifdef DEBUG
-            {
-                ios::fmtflags f( cout.flags() );
-                
-                cout << "\n Wrapped positions inside the basis (Angstroms):" <<std::endl;
-                for (const auto a : _orbitals->QMAtoms()) {
-                    cout <<a->type<<"\t" << std::fixed << setw(6) << setprecision(3) << a->x <<"\t"<< a->y <<"\t"<< a->z <<"\t"<<std::endl;
-                }
-                cout<<std::endl<<std::flush;
-                cout.flags( f );
-                
-                const ub::matrix<double>& CPMD_AO=_orbitals->AOOverlap();
-                
-                BasisSet bs;
-                bs.LoadBasisSet(_orbitals->getDFTbasis());
-                AOBasis basis;
-                basis.AOBasisFill(&bs, _orbitals->QMAtoms());
-                AOOverlap overlap;
-                overlap.Fill(basis);
-                ub::matrix<double>& VOTCA_AO=overlap.Matrix();
-
-                AOBasis p_basis;
-                p_basis.AOBasisFill(&bs, _orbitals->QMAtoms());
-                AOOverlapPeriodic p_overlap;
-                p_overlap.setBox(_box); //box already in Bohr
-                p_overlap.Fill(p_basis);
-                const ub::matrix<double>& p_AO=p_overlap.Matrix();
-
-                
-                cout << std::fixed << setw(10) << setprecision(7);
-                cout << "MO linear independence:"<<std::endl;
-                cout << "   \tCPMD\t\tAOOverlap\tAOOverlapPeriodic"<<std::endl;
-                ub::matrix<double> MO = _orbitals->MOCoefficients();
-                ub::range all_basis_funcs = ub::range(0, MO.size2());
-                for (unsigned i = 0; i < MO.size1(); i++) {
-                    ub::range ri = ub::range(i, i+1);
-                    ub::matrix<double> Ci = ub::project(MO, ri, all_basis_funcs);
-                    ub::matrix<double> Cj = ub::trans(Ci);
-                    ub::matrix<double> CPMD_SCj = ub::prod(CPMD_AO,Cj);
-                    ub::matrix<double> VOTCA_SCj = ub::prod(VOTCA_AO,Cj);
-                    ub::matrix<double> p_SCj = ub::prod(p_AO,Cj);
-                    cout << "   \t" << ub::prod(Ci,CPMD_SCj)(0,0) <<"\t" << ub::prod(Ci,VOTCA_SCj)(0,0) <<"\t"<< ub::prod(Ci,p_SCj)(0,0) << std::endl;
-                }
-                
-                
-                cout<<std::endl<<std::flush;
-                cout.flags( f );
-            }
-#endif
-            
+            ReorderOutput(orbitals);            
             return true;
 
         }
         
-        bool Cpmd::loadMatrices(Orbitals * _orbitals)
+        bool Cpmd::loadMatrices(Orbitals& orbitals)
         {
             int totAtoms=0;
             
             //check if WFNCOEF exists
             boost::filesystem::path arg_path;
             std::string _full_name = (arg_path / _run_dir / "WFNCOEF").c_str();
-            ifstream wf_file(_full_name.c_str());
+            std::ifstream wf_file(_full_name.c_str());
             if(wf_file.fail())
             {
                 XTP_LOG(logERROR, *_pLog) << "CPMD: " << _full_name << " is not found." << std::endl << std::flush;
@@ -990,7 +984,7 @@ namespace votca {
             int NATTOT=0;
             wf_file.read((char*)&NATTOT, _F_int_size);    //number of basis functions
             bl-=_F_int_size;
-            _orbitals->setBasisSetSize(NATTOT);
+            orbitals.setBasisSetSize(NATTOT);
             XTP_LOG(logDEBUG, *_pLog) << "Basis functions: " << NATTOT << std::flush;
 
             _NSP=0;                  //number of atom types
@@ -1085,7 +1079,7 @@ namespace votca {
             
             
             XTP_LOG(logDEBUG, *_pLog) << "CPMD: Reading MO coefficients."<< std::flush;
-            ub::matrix<double> &mo_coefficients = _orbitals->MOCoefficients();
+            Eigen::MatrixXd& mo_coefficients = orbitals.MOCoefficients();
             mo_coefficients.resize(NUMORB, NATTOT);
             
             //mo_coefficients need to be in VOTCA's atomic order
@@ -1137,7 +1131,7 @@ namespace votca {
             
             
                 //resize the overlap matrix
-            Eigen::MatrixXd &overlap = _orbitals->AOOverlap();
+            Eigen::MatrixXd &overlap = orbitals.AOOverlap();
             overlap.resize(NATTOT,NATTOT);
             
             //read
