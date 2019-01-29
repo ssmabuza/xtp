@@ -71,7 +71,6 @@ namespace votca {
                         "Ignoring the memory option\n"<< std::flush;
             }
             _threads = options.get(key + ".threads").as<int> ();
-            _chk_file_name = options.get(key + ".checkpoint").as<std::string> ();
             _scratch_dir = options.get(key + ".scratch").as<std::string> ();
             _cleanup = options.get(key + ".cleanup").as<std::string> ();
             if(_threads!=1){
@@ -105,7 +104,7 @@ namespace votca {
             }
             else _useGrimmeVDW=false;
             
-            //custom CPMD controlls
+            //custom CPMD controls
             if (options.exists(key + ".customCPMDcontrolls")) {
                 _custom_CPMD_controlls=options.get(key + ".customCPMDcontrolls").as<std::string> ();
                 if(_custom_CPMD_controlls.find("LSD")!=std::string::npos){
@@ -532,56 +531,56 @@ namespace votca {
                         {
                             ndecays += shell.getSize();
                             Lshells.push_back(shell);
-                                
                             //write the shell's L-value to the input file
                             _com_file << L << " ";
-                            if(!Lshells.empty()){   //only write things if there are shells with this L
-                                _el_file << "  Functions for l="<< L << std::endl;
-                                _el_file << "  " << Lshells.size() << " " << ndecays << std::endl;
-                                _el_file << std::endl;
+                        }       
+                    }
+                    
+                    if(!Lshells.empty()){   //only write things if there are shells with this L
+                        _el_file << "  Functions for l="<< L << std::endl;
+                        _el_file << "  " << Lshells.size() << " " << ndecays << std::endl;
+                        _el_file << std::endl;
 
-                                //decays
-                                std::ios::fmtflags old_settings = _el_file.flags();
-                                _el_file << std::scientific << std::setprecision(6);
-                                _el_file << "  ";
-                                for (const Shell& s:Lshells)
-                                {
-                                    for (const GaussianPrimitive& g:s) {
-                                        _el_file << g._decay << "\t";
-                                    }
-                                }
-                                _el_file << std::endl;
-
-                                //coefficients (scale*contraction)
-                                int gs=0; //number of decays already handled
-                                for (const Shell& s:Lshells)
-                                {
-                                    if(s.getSize()!=0) //there are gaussians in this shell
-                                    {
-                                        int gi=0; //index of the current decay
-                                        _el_file << "  ";
-                                        //output zeros for all decays already handled
-                                        for(gi=0; gi<gs; gi++)
-                                        {
-                                            _el_file << 0.0 << "\t";
-                                        }
-                                        //output coefficients for this shell's gaussians
-                                        for (const GaussianPrimitive& g:s) {
-                                            _el_file << s.getScale() * g._contraction[L] << "\t";
-                                            gi++;
-                                        }
-                                        gs+=shell.getSize();
-                                        //output zeros till the end of decays
-                                        for(;gi<ndecays; gi++)
-                                        {
-                                            _el_file << 0.0 << "\t";
-                                        }
-                                        _el_file << std::endl;
-                                    }
-                                }
-                                _el_file.flags(old_settings);
+                        //decays
+                        std::ios::fmtflags old_settings = _el_file.flags();
+                        _el_file << std::scientific << std::setprecision(6);
+                        _el_file << "  ";
+                        for (const Shell& s:Lshells)
+                        {
+                            for (const GaussianPrimitive& g:s) {
+                                _el_file << g._decay << "\t";
                             }
                         }
+                        _el_file << std::endl;
+
+                        //coefficients (scale*contraction)
+                        int gs=0; //number of decays already handled
+                        for (const Shell& s:Lshells)
+                        {
+                            if(s.getSize()!=0) //there are gaussians in this shell
+                            {
+                                int gi=0; //index of the current decay
+                                _el_file << "  ";
+                                //output zeros for all decays already handled
+                                for(gi=0; gi<gs; gi++)
+                                {
+                                    _el_file << 0.0 << "\t";
+                                }
+                                //output coefficients for this shell's gaussians
+                                for (const GaussianPrimitive& g:s) {
+                                    _el_file << s.getScale() * g._contraction[L] << "\t";
+                                    gi++;
+                                }
+                                gs+=s.getSize();
+                                //output zeros till the end of decays
+                                for(;gi<ndecays; gi++)
+                                {
+                                    _el_file << 0.0 << "\t";
+                                }
+                                _el_file << std::endl;
+                            }
+                        }
+                        _el_file.flags(old_settings);
                     }
                 }
 
@@ -603,7 +602,8 @@ namespace votca {
                  XTP_LOG(logDEBUG, *_pLog) << "CPMD: running [" << _executable << " " << _wfOpt_input_file_name << "]" << std::flush;
                  if (std::system(NULL)) {
                     std::string _command;
-                    _command = "cd " + _run_dir + "; rm -f LocalError*.log; " + _executable + " " + _wfOpt_input_file_name + " | tee " + _wfOpt_log_file_name;
+                    _command = "cd " + _run_dir + "; rm -f LocalError*.log; " + _executable + " " + _wfOpt_input_file_name + " > " + _wfOpt_log_file_name;
+                    
                     int check=std::system(_command.c_str());
 	            if (check==-1){
     	                XTP_LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << std::flush;

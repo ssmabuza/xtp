@@ -265,6 +265,9 @@
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="f4" displayName="tests" projectFiles="true">
+      <logicalFolder name="f1" displayName="QMPackages" projectFiles="true">
+        <itemPath>../../src/tests/test_qmpackage_cpmd.cc</itemPath>
+      </logicalFolder>
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
@@ -4854,6 +4857,11 @@
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_qmpackage_cpmd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
@@ -5935,6 +5943,11 @@
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmpackage_cpmd.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
