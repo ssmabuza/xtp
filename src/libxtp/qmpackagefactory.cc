@@ -22,6 +22,7 @@
 #include "qmpackages/gaussian.h"
 #include "qmpackages/nwchem.h"
 #include "qmpackages/orca.h"
+#include "qmpackages/cpmd.h"
 
 #include "qmpackages/xtpdft.h"
 
@@ -32,6 +33,7 @@ void QMPackageFactory::RegisterAll(void)
         QMPackages().Register<Gaussian>         ("gaussian");
         QMPackages().Register<NWChem>           ("nwchem");
         QMPackages().Register<Orca>             ("orca");
+        QMPackages().Register<Cpmd>             ("cpmd");
         QMPackages().Register<XTPDFT>           ("xtp");
 
 }

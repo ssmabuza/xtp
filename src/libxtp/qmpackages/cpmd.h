@@ -21,7 +21,7 @@
 #define	__VOTCA_XTP_CPMD_H
 
 
-#include <votca/ctp/apolarsite.h>
+//#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string> 
@@ -41,7 +41,7 @@ class Cpmd : public QMPackage
 // public functions
 public:   
 
-   std::string getPackageName() { return "cpmd"; }
+   std::string getPackageName() const{ return "cpmd"; }
 
    void Initialize(tools::Property &options );
 
@@ -101,6 +101,8 @@ private:
     int ConvAtomIndex_VOTCA2CPMD(int indx){
         return(VOTCA2CPMD_map[indx]);
     }
+    
+    void WriteChargeOption();
 
 // private variables
 private:

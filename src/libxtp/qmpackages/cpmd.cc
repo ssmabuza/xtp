@@ -1180,6 +1180,10 @@ namespace votca {
         }
 
 
-
+        void Cpmd::WriteChargeOption(){
+            std::runtime_error("CPMD is a planewave code. It does not support background point charges.");
+        }
+        
+        
     }
 }
